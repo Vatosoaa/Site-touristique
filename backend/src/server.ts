@@ -12,6 +12,8 @@ import blogRoutes from "./routes/blog"
 import messageRoutes from "./routes/messages"
 import employeeRoutes from "./routes/employees"
 import roleRoutes from "./routes/roles"
+import taskRoutes from "./routes/tasks"
+import * as schedulerService from "./services/schedulerService"
 
 const app = express()
 const PORT = process.env.PORT || 5000
@@ -37,9 +39,13 @@ app.use("/api/blog", blogRoutes)
 app.use("/api/messages", messageRoutes)
 app.use("/api/employees", employeeRoutes)
 app.use("/api/roles", roleRoutes)
+app.use("/api/tasks", taskRoutes)
 
 
 // Start Server
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`)
+  // Start email alert checking scheduler
+  schedulerService.start()
 })
+

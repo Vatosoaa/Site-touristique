@@ -266,7 +266,42 @@ class ApiClient {
     })
     return this.handleResponse<any>(response)
   }
+
+  // --- Tasks API ---
+  async getTasks(): Promise<any[]> {
+    const response = await fetch(`${API_BASE_URL}/tasks`, {
+      headers: this.getHeaders(),
+    })
+    return this.handleResponse<any[]>(response)
+  }
+
+  async createTask(task: any): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/tasks`, {
+      method: "POST",
+      headers: this.getHeaders(),
+      body: JSON.stringify(task),
+    })
+    return this.handleResponse<any>(response)
+  }
+
+  async updateTask(id: number, task: any): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/tasks/${id}`, {
+      method: "PUT",
+      headers: this.getHeaders(),
+      body: JSON.stringify(task),
+    })
+    return this.handleResponse<any>(response)
+  }
+
+  async deleteTask(id: number): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/tasks/${id}`, {
+      method: "DELETE",
+      headers: this.getHeaders(),
+    })
+    return this.handleResponse<any>(response)
+  }
 }
 
 export const api = new ApiClient()
+
 

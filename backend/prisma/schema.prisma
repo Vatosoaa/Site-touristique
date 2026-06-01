@@ -70,6 +70,21 @@ model Employee {
   color     String   @default("bg-indigo-500")
   roleId    Int
   role      Role     @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  tasks     Task[]
   createdAt DateTime @default(now())
 }
+
+model Task {
+  id          Int        @id @default(autoincrement())
+  title       String
+  description String?
+  date        DateTime
+  status      String     @default("À faire") // "À faire", "En cours", "Terminé"
+  priority    String     @default("Moyenne") // "Basse", "Moyenne", "Haute"
+  color       String     @default("bg-violet-500")
+  employees   Employee[]
+  emailSent   Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+}
+
 

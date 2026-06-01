@@ -38,6 +38,7 @@ import { BlogDialog } from "./components/BlogDialog"
 import { EmployeeDialog } from "./components/EmployeeDialog"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { DashboardChart } from "./components/DashboardChart"
+import AgendaTab from "./components/AgendaTab"
 
 
 type TabType =
@@ -53,10 +54,11 @@ type TabType =
   | "temoignages"
   | "slides_hero"
   | "nouvelle_destination"
+  | "agenda"
 
 export default function AdminDashboard() {
   const { tab } = useParams<{ tab: string }>()
-  const activeTab = (tab as TabType) || "overview"
+  const activeTab = ((tab?.toLowerCase() === "agenda" ? "agenda" : tab) as TabType) || "overview"
   const [tours, setTours] = useState<any[]>([])
   const [packages, setPackages] = useState<any[]>([])
   const [blogPosts, setBlogPosts] = useState<any[]>([])
@@ -305,7 +307,7 @@ export default function AdminDashboard() {
               {
                 title: "OPERATIONS",
                 items: [
-                  { id: "overview", label: "Agenda", icon: Calendar },
+                  { id: "agenda", label: "Agenda", icon: Calendar },
                   { id: "employes", label: "Employés", icon: Briefcase },
                   { id: "services", label: "Services", icon: Bell },
                   { id: "tours", label: "Destinations", icon: Map },
@@ -340,7 +342,7 @@ export default function AdminDashboard() {
                             setSelectedItem(null)
                             setIsTourDialogOpen(true)
                           } else {
-                            navigate("/admin/" + item.id)
+                            navigate("/admin/" + (item.id === "agenda" ? "Agenda" : item.id))
                           }
                         }}
                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all cursor-pointer group ${
@@ -397,9 +399,11 @@ export default function AdminDashboard() {
             ) : (
               <>
                 <h2 className="text-3xl font-bold text-foreground capitalize leading-tight">
-                  {activeTab === "blog" ? "Gestion du Blog" : activeTab === "messages" ? "Demandes de Contact" : activeTab === "tours" ? "Circuits Populaires" : activeTab === "packages" ? "Formules Promos" : "Espace Admin"}
+                  {activeTab === "blog" ? "Gestion du Blog" : activeTab === "messages" ? "Demandes de Contact" : activeTab === "tours" ? "Circuits Populaires" : activeTab === "packages" ? "Formules Promos" : activeTab === "agenda" ? "Agenda d'Équipe" : "Espace Admin"}
                 </h2>
-                <p className="text-sm text-muted-foreground font-medium">Gérez et mettez à jour le contenu de votre site web</p>
+                <p className="text-sm text-muted-foreground font-semibold mt-1">
+                  {activeTab === "agenda" ? "Gérez les tâches et événements de l'équipe" : "Gérez et mettez à jour le contenu de votre site web"}
+                </p>
               </>
             )}
           </div>
@@ -1407,15 +1411,17 @@ export default function AdminDashboard() {
 
             {/* SLIDES HERO TAB */}
             {activeTab === "slides_hero" && (
-              <div className="space-y-6">
-                <span className="text-sm text-muted-foreground font-semibold">Configuration des Diaporamas d'Accueil</span>
-                <Card className="bg-card border border-border p-6 rounded-3xl shadow-md">
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    Sélectionnez et organisez les images héroïques affichées sur la page d'accueil de la vitrine. 
-                    (Fonctionnalité en cours de modélisation pour l'intégration de la base de données).
-                  </p>
-                </Card>
-              </div>
+              <Card className="bg-card border border-border p-6 rounded-3xl shadow-md">
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Sélectionnez et organisez les images héroïques affichées sur la page d'accueil de la vitrine. 
+                  (Fonctionnalité en cours de modélisation pour l'intégration de la base de données).
+                </p>
+              </Card>
+            )}
+
+            {/* AGENDA TAB */}
+            {activeTab === "agenda" && (
+              <AgendaTab employees={employees} />
             )}
 
           </div>

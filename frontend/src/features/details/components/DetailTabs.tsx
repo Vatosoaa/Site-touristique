@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Map, Puzzle, CreditCard, Globe } from "lucide-react"
+import { Map, Puzzle, CreditCard, Globe, Instagram, Linkedin, Mail } from "lucide-react"
 
 const TABS = [
   { id: "itineraire", label: "ITINÉRAIRE" },
@@ -14,22 +14,72 @@ export function DetailTabs() {
   const [activeTab, setActiveTab] = useState("itineraire")
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 mt-12">
-      <div className="lg:col-span-2">
-        <div className="flex overflow-x-auto no-scrollbar border border-slate-200 rounded-sm mb-12 scrollbar-hide">
-          {TABS.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 min-w-[120px] md:min-w-0 py-4 text-[10px] font-bold tracking-widest transition-all shrink-0 ${
-                activeTab === tab.id
-                  ? "bg-white text-forest-green border-b-4 border-forest-green"
-                  : "bg-slate-50 text-slate-400 border-b-4 border-transparent hover:bg-white"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+    <div className="flex gap-6 lg:gap-10 mt-12 items-start relative">
+      {/* Left Social Floating Column */}
+      <div className="hidden md:flex flex-col gap-4 sticky top-28 shrink-0 z-10">
+        <a 
+          href="https://instagram.com" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="w-11 h-11 rounded-full bg-gradient-to-tr from-[#F58529] via-[#DD2A7B] to-[#8134AF] text-white flex items-center justify-center shadow-lg hover:scale-110 hover:rotate-6 transition-all duration-300 border border-white/10"
+          title="Instagram"
+        >
+          <Instagram className="w-5 h-5" />
+        </a>
+        <a 
+          href="https://tiktok.com" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="w-11 h-11 rounded-full bg-black text-white flex items-center justify-center shadow-lg hover:scale-110 hover:-rotate-6 transition-all duration-300 border border-white/10 relative overflow-hidden"
+          title="TikTok"
+        >
+          <span className="font-extrabold text-sm tracking-tighter">🎵</span>
+        </a>
+        <a 
+          href="https://linkedin.com" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="w-11 h-11 rounded-full bg-[#0A66C2] text-white flex items-center justify-center shadow-lg hover:scale-110 hover:rotate-6 transition-all duration-300 border border-white/10"
+          title="LinkedIn"
+        >
+          <Linkedin className="w-5 h-5" />
+        </a>
+        <a 
+          href="mailto:contact@explorile.mg" 
+          className="w-11 h-11 rounded-full bg-[#D93025] text-white flex items-center justify-center shadow-lg hover:scale-110 hover:-rotate-6 transition-all duration-300 border border-white/10"
+          title="Email"
+        >
+          <Mail className="w-5 h-5" />
+        </a>
+      </div>
+
+      {/* Main Grid Content */}
+      <div className="flex-grow grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
+        <div className="lg:col-span-2">
+        <div className="flex overflow-x-auto no-scrollbar gap-3 md:gap-4 mb-12 pb-3 scrollbar-hide">
+          {TABS.map((tab) => {
+            const isActive = activeTab === tab.id
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`relative flex-1 min-w-[140px] md:min-w-0 py-4 px-6 text-xs font-black tracking-widest transition-all duration-300 rounded-2xl shrink-0 uppercase shadow-sm border border-transparent ${
+                  isActive
+                    ? "bg-[#0F1C0F] text-white shadow-md shadow-slate-950/15 scale-[1.02] border-[#0F1C0F]/10"
+                    : "bg-[#F1F5F9] text-slate-600 hover:bg-[#E2E8F0] hover:text-slate-900"
+                }`}
+              >
+                {isActive && (
+                  <motion.span
+                    layoutId="activeTabOutline"
+                    className="absolute inset-0 rounded-2xl ring-2 ring-[#0F1C0F]/10"
+                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                  />
+                )}
+                <span className="relative z-10">{tab.label}</span>
+              </button>
+            )
+          })}
         </div>
 
         {/* Tab Content */}
@@ -88,7 +138,7 @@ export function DetailTabs() {
                        />
                      </div>
                    </div>
-                </div>
+                 </div>
               )}
 
               {activeTab === "details" && (
@@ -102,154 +152,310 @@ export function DetailTabs() {
                     <div className="md:col-span-1">
                       <div className="sticky top-24 space-y-4">
                         {[
-                          { id: "day-1", label: "1" },
-                          { id: "day-2", label: "2" },
-                          { id: "day-3", label: "3" },
-                          { id: "day-4-5", label: "4 et 5" },
-                          { id: "day-6-7", label: "6 et 7" },
-                          { id: "day-8-9", label: "8 et 9" },
-                          { id: "day-10-11", label: "10 et 11" },
-                          { id: "day-12-13", label: "12 et 13" },
-                          { id: "day-14", label: "14" },
+                          { id: "day-1", label: "JOUR 1" },
+                          { id: "day-2", label: "JOUR 2" },
+                          { id: "day-3-5", label: "JOURS 3 à 5" },
+                          { id: "day-6-9", label: "JOURS 6 à 9" },
+                          { id: "day-10-13", label: "JOURS 10 à 13" },
+                          { id: "day-14", label: "JOUR 14" },
                         ].map((day) => (
                           <div key={day.id} className="border-b border-slate-900/10 pb-1">
                             <span 
                               onClick={() => document.getElementById(day.id)?.scrollIntoView({ behavior: "smooth", block: "center" })}
-                              className="text-[10px] font-bold text-slate-900 cursor-pointer hover:text-forest-green transition-colors uppercase tracking-widest underline decoration-slate-900 decoration-1 underline-offset-4"
+                              className="text-[10px] font-black text-slate-900 cursor-pointer hover:text-forest-green transition-colors uppercase tracking-widest underline decoration-slate-900 decoration-1 underline-offset-4"
                             >
-                              JOUR {day.label}
+                              {day.label}
                             </span>
                           </div>
                         ))}
                       </div>
                     </div>
 
-                    {/* Right Content */}
-                    <div className="md:col-span-3 space-y-12">
-                      {/* Jour 1 */}
-                      <div id="day-1" className="space-y-6 scroll-mt-32">
-                        <span className="text-forest-green font-bold text-lg">Jour 1</span>
-                        <h4 className="text-forest-green font-bold text-lg">Antananarivo</h4>
-                        <p className="text-slate-600 leading-relaxed text-sm">
-                          Votre voyage commence à Antananarivo ! Accueil à l'aéroport d'Ivato et transfert à votre hôtel. 
-                          Découverte de la Ville des Mille, ses palais royaux et ses marchés colorés.
-                        </p>
-                        <p className="text-slate-400 italic text-sm">
-                          Nuit à Antananarivo. Petit déjeuner inclus.
-                        </p>
-                        <div className="h-px bg-slate-100 w-full pt-6" />
+                    {/* Right Content: Visual Timeline */}
+                    <div className="md:col-span-3 relative pl-6 border-l-2 border-slate-200 space-y-16">
+                      
+                      {/* Timeline Dot 1 - Tana */}
+                      <div id="day-1" className="relative scroll-mt-32 space-y-4">
+                        <span className="absolute -left-[31px] top-1.5 w-4 h-4 rounded-full bg-[#0F1C0F] border-4 border-white shadow-md"></span>
+                        
+                        {/* Header Transport Row */}
+                        <div className="flex flex-col sm:flex-row justify-between sm:items-center bg-[#FFF1F2] border border-red-100 rounded-xl p-3 sm:px-4 text-xs font-bold gap-2">
+                          <span className="text-slate-800 flex items-center gap-1.5">
+                            ✈️ Ivato Airport ➔ Antananarivo
+                          </span>
+                          <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+                            <span className="text-slate-500">(5 avis) 💬</span>
+                            <button className="bg-[#D93025] hover:bg-[#C22018] text-white px-3 py-1.5 rounded-lg transition-colors text-[10px] uppercase font-black tracking-wider">
+                              Détails transfert
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Card Content Row */}
+                        <div className="flex flex-col md:flex-row gap-6 mt-4 items-start">
+                          <img 
+                            src="/images/destination2.jpg" 
+                            alt="Antananarivo" 
+                            className="w-full md:w-60 rounded-2xl aspect-[4/3] object-cover shadow-sm shrink-0 border border-slate-100"
+                          />
+                          <div className="flex-grow space-y-4">
+                            <h4 className="text-forest-green font-extrabold text-lg flex items-center gap-1.5">
+                              Antananarivo <span className="text-xs text-slate-400 font-semibold">• Accueil & Transfert</span>
+                            </h4>
+                            <p className="text-slate-600 leading-relaxed text-sm">
+                              Votre voyage commence à Antananarivo ! Accueil à l'aéroport d'Ivato et transfert privé à votre hôtel. 
+                              Découverte libre de la « Ville des Mille », bâtie en amphithéâtre, avec ses marchés colorés et ses ruelles chargées d'histoire.
+                            </p>
+                            <div className="text-xs text-slate-800">
+                              <p className="font-bold mb-2">À voir et à faire à Antananarivo :</p>
+                              <ul className="list-disc pl-4 space-y-1 text-slate-600">
+                                <li>Balade sur la Haute Ville et vue panoramique depuis le Rova.</li>
+                                <li>Dégustation de plats locaux malgaches au marché.</li>
+                              </ul>
+                            </div>
+                            <div className="flex justify-end pt-2">
+                              <button className="bg-[#0B2527] hover:bg-[#0B2527]/90 text-white rounded-full font-bold px-4 py-2 text-[10px] uppercase tracking-wider flex items-center gap-1">
+                                Que faire à Antananarivo ?
+                              </button>
+                            </div>
+                          </div>
+                        </div>
                       </div>
 
-                      {/* Jour 2 */}
-                      <div id="day-2" className="space-y-6 pt-6 scroll-mt-32">
-                        <span className="text-forest-green font-bold text-lg">Jour 2</span>
-                        <h4 className="text-forest-green font-bold text-lg">Antananarivo - Antsirabe</h4>
-                        <p className="text-slate-600 leading-relaxed text-sm">
-                          Route vers le Sud à travers les paysages des Hautes Terres. Arrêt à Ambatolampy pour voir la fonderie d'aluminium. 
-                          Arrivée à Antsirabe, balade en pousse-pousse et visite des ateliers de pierres précieuses.
-                        </p>
-                        <p className="text-slate-400 italic text-sm">
-                          Nuit à Antsirabe. Petit déjeuner inclus.
-                        </p>
-                        <div className="h-px bg-slate-100 w-full pt-6" />
+                      {/* Timeline Dot 2 - Antsirabe */}
+                      <div id="day-2" className="relative scroll-mt-32 space-y-4">
+                        <span className="absolute -left-[31px] top-1.5 w-4 h-4 rounded-full bg-[#0F1C0F] border-4 border-white shadow-md"></span>
+                        
+                        {/* Header Transport Row */}
+                        <div className="flex flex-col sm:flex-row justify-between sm:items-center bg-[#F8FAFC] border border-slate-100 rounded-xl p-3 sm:px-4 text-xs font-bold gap-2">
+                          <span className="text-slate-800 flex items-center gap-1.5">
+                            🚗 RN7 : Antananarivo ➔ Antsirabe - ~3h30
+                          </span>
+                          <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+                            <span className="text-slate-500">(12 avis) 💬</span>
+                            <button className="bg-[#D93025] hover:bg-[#C22018] text-white px-3 py-1.5 rounded-lg transition-colors text-[10px] uppercase font-black tracking-wider">
+                              Voir les prix
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Card Content Row */}
+                        <div className="flex flex-col md:flex-row gap-6 mt-4 items-start">
+                          <img 
+                            src="/images/destination3.jpg" 
+                            alt="Antsirabe" 
+                            className="w-full md:w-60 rounded-2xl aspect-[4/3] object-cover shadow-sm shrink-0 border border-slate-100"
+                          />
+                          <div className="flex-grow space-y-4">
+                            <h4 className="text-forest-green font-extrabold text-lg flex items-center gap-1.5">
+                              Antsirabe <span className="text-xs text-slate-400 font-semibold">• La Ville Thermale</span>
+                            </h4>
+                            <p className="text-slate-600 leading-relaxed text-sm">
+                              Descente vers le Sud à travers les magnifiques paysages des Hautes Terres. Halte culturelle à Ambatolampy. 
+                              Arrivée à Antsirabe, balade animée en pousse-pousse traditionnel et visite des célèbres ateliers d'artisans.
+                            </p>
+                            <div className="text-xs text-slate-800">
+                              <p className="font-bold mb-2">À voir et à faire à Antsirabe :</p>
+                              <ul className="list-disc pl-4 space-y-1 text-slate-600">
+                                <li>Visite des ateliers de cornes de zébu et de miniatures.</li>
+                                <li>Excursion spectaculaire vers le lac de cratère Tritriva.</li>
+                              </ul>
+                            </div>
+                            <div className="flex justify-end pt-2">
+                              <button className="bg-[#0B2527] hover:bg-[#0B2527]/90 text-white rounded-full font-bold px-4 py-2 text-[10px] uppercase tracking-wider flex items-center gap-1">
+                                Que faire à Antsirabe ?
+                              </button>
+                            </div>
+                          </div>
+                        </div>
                       </div>
 
-                      {/* Jour 3 */}
-                      <div id="day-3" className="space-y-6 pt-6 scroll-mt-32">
-                        <span className="text-forest-green font-bold text-lg">Jour 3</span>
-                        <h4 className="text-forest-green font-bold text-lg">Antsirabe - Ambositra - Ranomafana</h4>
-                        <p className="text-slate-600 leading-relaxed text-sm">
-                          Continuation vers Ambositra, capitale de l'artisanat malgache spécialisée dans la sculpture sur bois Zafimaniry. 
-                          Puis route vers Ranomafana et sa forêt tropicale humide.
-                        </p>
-                        <p className="text-slate-400 italic text-sm">
-                          Nuit à Ranomafana. Petit déjeuner inclus.
-                        </p>
-                        <div className="h-px bg-slate-100 w-full pt-6" />
+                      {/* Timeline Dot 3 - Ranomafana */}
+                      <div id="day-3-5" className="relative scroll-mt-32 space-y-4">
+                        <span className="absolute -left-[31px] top-1.5 w-4 h-4 rounded-full bg-[#0F1C0F] border-4 border-white shadow-md"></span>
+                        
+                        {/* Header Transport Row */}
+                        <div className="flex flex-col sm:flex-row justify-between sm:items-center bg-[#F8FAFC] border border-slate-100 rounded-xl p-3 sm:px-4 text-xs font-bold gap-2">
+                          <span className="text-slate-800 flex items-center gap-1.5">
+                            🚗 Antsirabe ➔ Ambositra ➔ Ranomafana - ~5h00
+                          </span>
+                          <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+                            <span className="text-slate-500">(8 avis) 💬</span>
+                            <button className="bg-[#D93025] hover:bg-[#C22018] text-white px-3 py-1.5 rounded-lg transition-colors text-[10px] uppercase font-black tracking-wider">
+                              Voir les prix
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Info Alert Tip */}
+                        <div className="flex gap-3 bg-slate-50 border border-slate-100 rounded-xl p-4 text-xs text-slate-600 items-start">
+                          <span className="text-forest-green font-extrabold shrink-0 text-base leading-none">ⓘ</span>
+                          <p>Ambatolampy est célèbre pour sa fonderie d'aluminium artisanale. N'hésitez pas à vous y arrêter pour admirer la fabrication de marmites traditionnelles !</p>
+                        </div>
+
+                        {/* Card Content Row */}
+                        <div className="flex flex-col md:flex-row gap-6 mt-4 items-start">
+                          <img 
+                            src="/images/destination4.jpg" 
+                            alt="Ranomafana" 
+                            className="w-full md:w-60 rounded-2xl aspect-[4/3] object-cover shadow-sm shrink-0 border border-slate-100"
+                          />
+                          <div className="flex-grow space-y-4">
+                            <h4 className="text-forest-green font-extrabold text-lg flex items-center gap-1.5">
+                              Ranomafana <span className="text-xs text-slate-400 font-semibold">• Forêt Tropicale Humide</span>
+                            </h4>
+                            <p className="text-slate-600 leading-relaxed text-sm">
+                              Halte à Ambositra pour découvrir la marqueterie traditionnelle Zafimaniry. Continuation vers Ranomafana. 
+                              Explorez cette forêt tropicale à la recherche des fameux lémuriens dorés et détendez-vous dans ses sources thermales.
+                            </p>
+                            <div className="text-xs text-slate-800">
+                              <p className="font-bold mb-2">À voir et à faire à Ranomafana :</p>
+                              <ul className="list-disc pl-4 space-y-1 text-slate-600">
+                                <li>Randonnée guidée à la recherche des lémuriens endémiques.</li>
+                                <li>Détente dans les piscines thermales chaudes du village.</li>
+                              </ul>
+                            </div>
+                            <div className="flex justify-end pt-2">
+                              <button className="bg-[#0B2527] hover:bg-[#0B2527]/90 text-white rounded-full font-bold px-4 py-2 text-[10px] uppercase tracking-wider flex items-center gap-1">
+                                Que faire à Ranomafana ?
+                              </button>
+                            </div>
+                          </div>
+                        </div>
                       </div>
 
-                      {/* Jours 4 et 5 */}
-                      <div id="day-4-5" className="space-y-6 pt-6 scroll-mt-32">
-                        <span className="text-forest-green font-bold text-lg">Jours 4 et 5</span>
-                        <h4 className="text-forest-green font-bold text-lg">Parc National de Ranomafana</h4>
-                        <p className="text-slate-600 leading-relaxed text-sm">
-                          Deux jours dédiés à l'exploration du parc national. Observation des lémuriens (dont l'Hapalémur doré), 
-                          découverte d'une flore endémique exceptionnelle et détente dans les sources thermales du village.
-                        </p>
-                        <p className="text-slate-400 italic text-sm">
-                          Nuits à Ranomafana. Petits déjeuners inclus.
-                        </p>
-                        <div className="h-px bg-slate-100 w-full pt-6" />
+                      {/* Timeline Dot 4 - Isalo */}
+                      <div id="day-6-9" className="relative scroll-mt-32 space-y-4">
+                        <span className="absolute -left-[31px] top-1.5 w-4 h-4 rounded-full bg-[#0F1C0F] border-4 border-white shadow-md"></span>
+                        
+                        {/* Header Transport Row */}
+                        <div className="flex flex-col sm:flex-row justify-between sm:items-center bg-[#F8FAFC] border border-slate-100 rounded-xl p-3 sm:px-4 text-xs font-bold gap-2">
+                          <span className="text-slate-800 flex items-center gap-1.5">
+                            🚗 Ranomafana ➔ Ambalavao ➔ Isalo - ~6h30
+                          </span>
+                          <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+                            <span className="text-slate-500">(15 avis) 💬</span>
+                            <button className="bg-[#D93025] hover:bg-[#C22018] text-white px-3 py-1.5 rounded-lg transition-colors text-[10px] uppercase font-black tracking-wider">
+                              Voir les prix
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Card Content Row */}
+                        <div className="flex flex-col md:flex-row gap-6 mt-4 items-start">
+                          <img 
+                            src="/images/destination2.jpg" 
+                            alt="Isalo" 
+                            className="w-full md:w-60 rounded-2xl aspect-[4/3] object-cover shadow-sm shrink-0 border border-slate-100"
+                          />
+                          <div className="flex-grow space-y-4">
+                            <h4 className="text-forest-green font-extrabold text-lg flex items-center gap-1.5">
+                              Parc National de l'Isalo <span className="text-xs text-slate-400 font-semibold">• Le Grand Canyon</span>
+                            </h4>
+                            <p className="text-slate-600 leading-relaxed text-sm">
+                              Traversée d'Ambalavao avec sa fabrique de papier Antemoro et la réserve de lémuriens d'Anja. 
+                              Route vers le plateau géologique ruiniforme de l'Isalo, ses canyons profonds et ses piscines naturelles splendides.
+                            </p>
+                            <div className="text-xs text-slate-800">
+                              <p className="font-bold mb-2">À voir et à faire dans l'Isalo :</p>
+                              <ul className="list-disc pl-4 space-y-1 text-slate-600">
+                                <li>Randonnée dans le Canyon des Singes et baignade en piscine naturelle.</li>
+                                <li>Coucher de soleil féérique à travers la célèbre Fenêtre de l'Isalo.</li>
+                              </ul>
+                            </div>
+                            <div className="flex justify-end pt-2">
+                              <button className="bg-[#0B2527] hover:bg-[#0B2527]/90 text-white rounded-full font-bold px-4 py-2 text-[10px] uppercase tracking-wider flex items-center gap-1">
+                                Que faire à l'Isalo ?
+                              </button>
+                            </div>
+                          </div>
+                        </div>
                       </div>
 
-                      {/* Jours 6 et 7 */}
-                      <div id="day-6-7" className="space-y-6 pt-6 scroll-mt-32">
-                        <span className="text-forest-green font-bold text-lg">Jours 6 et 7</span>
-                        <h4 className="text-forest-green font-bold text-lg">Ranomafana - Ambalavao - Isalo</h4>
-                        <p className="text-slate-600 leading-relaxed text-sm">
-                          Route vers le Sud profond. Visite de la fabrique de papier Antemoro à Ambalavao. 
-                          Traversée du plateau de l'Horombe pour atteindre les massifs ruiniformes de l'Isalo.
-                        </p>
-                        <p className="text-slate-400 italic text-sm">
-                          Nuits à l'Isalo. Petits déjeuners inclus.
-                        </p>
-                        <div className="h-px bg-slate-100 w-full pt-6" />
+                      {/* Timeline Dot 5 - Ifaty */}
+                      <div id="day-10-13" className="relative scroll-mt-32 space-y-4">
+                        <span className="absolute -left-[31px] top-1.5 w-4 h-4 rounded-full bg-[#0F1C0F] border-4 border-white shadow-md"></span>
+                        
+                        {/* Header Transport Row */}
+                        <div className="flex flex-col sm:flex-row justify-between sm:items-center bg-[#F8FAFC] border border-slate-100 rounded-xl p-3 sm:px-4 text-xs font-bold gap-2">
+                          <span className="text-slate-800 flex items-center gap-1.5">
+                            🚗 Piste : Isalo ➔ Tuléar ➔ Ifaty - ~4h30
+                          </span>
+                          <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+                            <span className="text-slate-500">(10 avis) 💬</span>
+                            <button className="bg-[#D93025] hover:bg-[#C22018] text-white px-3 py-1.5 rounded-lg transition-colors text-[10px] uppercase font-black tracking-wider">
+                              Voir les prix
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Card Content Row */}
+                        <div className="flex flex-col md:flex-row gap-6 mt-4 items-start">
+                          <img 
+                            src="/images/destination3.jpg" 
+                            alt="Ifaty" 
+                            className="w-full md:w-60 rounded-2xl aspect-[4/3] object-cover shadow-sm shrink-0 border border-slate-100"
+                          />
+                          <div className="flex-grow space-y-4">
+                            <h4 className="text-forest-green font-extrabold text-lg flex items-center gap-1.5">
+                              Ifaty <span className="text-xs text-slate-400 font-semibold">• Séjour Balnéaire</span>
+                            </h4>
+                            <p className="text-slate-600 leading-relaxed text-sm">
+                              Descente côtière vers Tuléar, capitale du grand Sud. Transfert vers le charmant lagon d'Ifaty. 
+                              Séjour libre dédié à la détente en bord de mer, à la plongée ou à la découverte de la faune marine.
+                            </p>
+                            <div className="text-xs text-slate-800">
+                              <p className="font-bold mb-2">À voir et à faire à Ifaty :</p>
+                              <ul className="list-disc pl-4 space-y-1 text-slate-600">
+                                <li>Sortie en pirogue à balancier traditionnelle Vezo.</li>
+                                <li>Visite guidée de la réserve de Baobabs sacrés de Reniala.</li>
+                              </ul>
+                            </div>
+                            <div className="flex justify-end pt-2">
+                              <button className="bg-[#0B2527] hover:bg-[#0B2527]/90 text-white rounded-full font-bold px-4 py-2 text-[10px] uppercase tracking-wider flex items-center gap-1">
+                                Que faire à Ifaty ?
+                              </button>
+                            </div>
+                          </div>
+                        </div>
                       </div>
 
-                      {/* Jours 8 et 9 */}
-                      <div id="day-8-9" className="space-y-6 pt-6 scroll-mt-32">
-                        <span className="text-forest-green font-bold text-lg">Jours 8 et 9</span>
-                        <h4 className="text-forest-green font-bold text-lg">Parc National de l'Isalo</h4>
-                        <p className="text-slate-600 leading-relaxed text-sm">
-                          Immersion totale dans le Grand Canyon malgache. Randonnée vers la piscine naturelle, 
-                          le canyon des singes et découverte des tombeaux Bara nichés dans les falaises.
-                        </p>
-                        <p className="text-slate-400 italic text-sm">
-                          Nuits à l'Isalo. Petits déjeuners inclus.
-                        </p>
-                        <div className="h-px bg-slate-100 w-full pt-6" />
+                      {/* Timeline Dot 6 - Retour */}
+                      <div id="day-14" className="relative scroll-mt-32 space-y-4">
+                        <span className="absolute -left-[31px] top-1.5 w-4 h-4 rounded-full bg-[#0F1C0F] border-4 border-white shadow-md"></span>
+                        
+                        {/* Header Transport Row */}
+                        <div className="flex flex-col sm:flex-row justify-between sm:items-center bg-[#F8FAFC] border border-slate-100 rounded-xl p-3 sm:px-4 text-xs font-bold gap-2">
+                          <span className="text-slate-800 flex items-center gap-1.5">
+                            ✈️ Vol Intérieur : Tuléar ➔ Antananarivo ➔ Départ
+                          </span>
+                          <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+                            <span className="text-slate-500">(0 avis) 💬</span>
+                            <button className="bg-[#D93025] hover:bg-[#C22018] text-white px-3 py-1.5 rounded-lg transition-colors text-[10px] uppercase font-black tracking-wider">
+                              Infos vol
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Card Content Row */}
+                        <div className="flex flex-col md:flex-row gap-6 mt-4 items-start">
+                          <img 
+                            src="/images/destination4.jpg" 
+                            alt="Retour Ivato" 
+                            className="w-full md:w-60 rounded-2xl aspect-[4/3] object-cover shadow-sm shrink-0 border border-slate-100"
+                          />
+                          <div className="flex-grow space-y-4">
+                            <h4 className="text-forest-green font-extrabold text-lg flex items-center gap-1.5">
+                              Antananarivo / Ivato <span className="text-xs text-slate-400 font-semibold">• Fin de l'immersion</span>
+                            </h4>
+                            <p className="text-slate-600 leading-relaxed text-sm">
+                              Vol de retour sur Antananarivo et transfert pour votre vol international. 
+                              Fin de cette magnifique immersion à Madagascar pleine d'aventures avec Explor'île.
+                            </p>
+                          </div>
+                        </div>
                       </div>
 
-                      {/* Jours 10 et 11 */}
-                      <div id="day-10-11" className="space-y-6 pt-6 scroll-mt-32">
-                        <span className="text-forest-green font-bold text-lg">Jours 10 et 11</span>
-                        <h4 className="text-forest-green font-bold text-lg">Isalo - Tuléar - Ifaty</h4>
-                        <p className="text-slate-600 leading-relaxed text-sm">
-                          Dernière étape vers le Sud. Traversée du pays Mahafaly avec ses tombeaux colorés. 
-                          Arrivée à Tuléar et transfert vers le lagon d'Ifaty pour deux jours de détente balnéaire.
-                        </p>
-                        <p className="text-slate-400 italic text-sm">
-                          Nuits à Ifaty. Petits déjeuners inclus.
-                        </p>
-                        <div className="h-px bg-slate-100 w-full pt-6" />
-                      </div>
-
-                      {/* Jours 12 et 13 */}
-                      <div id="day-12-13" className="space-y-6 pt-6 scroll-mt-32">
-                        <span className="text-forest-green font-bold text-lg">Jours 12 et 13</span>
-                        <h4 className="text-forest-green font-bold text-lg">Ifaty - Tuléar - Antananarivo</h4>
-                        <p className="text-slate-600 leading-relaxed text-sm">
-                          Transfert à l'aéroport de Tuléar et vol intérieur vers Antananarivo. 
-                          Dernières visites culturelles et shopping au marché artisanal de la Digue.
-                        </p>
-                        <p className="text-slate-400 italic text-sm">
-                          Nuits à Antananarivo. Petits déjeuners inclus.
-                        </p>
-                        <div className="h-px bg-slate-100 w-full pt-6" />
-                      </div>
-
-                      {/* Jour 14 */}
-                      <div id="day-14" className="space-y-6 pt-6 scroll-mt-32">
-                        <span className="text-forest-green font-bold text-lg">Jour 14</span>
-                        <h4 className="text-forest-green font-bold text-lg">Départ d'Ivato</h4>
-                        <p className="text-slate-600 leading-relaxed text-sm">
-                          Transfert à l'aéroport international pour votre vol de retour. 
-                          Fin de votre immersion au cœur de l'âme malgache avec Explor'île.
-                        </p>
-                        <p className="text-slate-400 italic text-sm">
-                          Repas libres.
-                        </p>
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -406,69 +612,127 @@ export function DetailTabs() {
         </div>
       </div>
 
-      {/* Sidebar: Points Forts */}
-      <div className="lg:col-span-1 pt-32">
-        <div className="bg-slate-50/50 p-10 rounded-xl border border-slate-100 shadow-sm">
-          <h3 className="text-2xl font-serif text-forest-green text-center mb-8 italic">Les points forts</h3>
-          <div className="w-full h-px bg-slate-200 mb-8 relative">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-1 bg-forest-green/20 rounded-full" />
+      {/* Sidebar: Promo Images & Info Cards */}
+      <div className="lg:col-span-1 space-y-8 pt-0 lg:pt-16">
+        
+        {/* Promotional Card 1: Destination Highlight */}
+        <div className="relative rounded-3xl overflow-hidden shadow-xl aspect-[4/3] group cursor-pointer border border-slate-100">
+          <img 
+            src="/images/destination2.jpg" 
+            alt="Madagascar" 
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/10 flex flex-col justify-end p-6">
+            <h4 className="text-white font-extrabold text-2xl tracking-wide">Madagascar</h4>
+            <p className="text-white/80 text-xs mt-1.5 font-medium leading-relaxed">
+              ➔ En savoir plus sur cette destination unique
+            </p>
+          </div>
+        </div>
+
+        {/* Promotional Card 2: Activities Promotion */}
+        <div className="relative rounded-3xl overflow-hidden shadow-xl aspect-[4/3] group cursor-pointer border border-slate-100">
+          <img 
+            src="/images/destination3.jpg" 
+            alt="Activités" 
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0B2527]/90 via-slate-900/35 to-black/10 flex flex-col justify-between p-6">
+            <div className="self-end bg-[#F59E0B] text-white text-[9px] font-black tracking-widest px-2.5 py-1 rounded-full uppercase">
+              Promo Activités
+            </div>
+            <div>
+              <h4 className="text-yellow-400 font-black text-lg tracking-wide uppercase leading-tight">Tes activités</h4>
+              <p className="text-white font-extrabold text-sm uppercase mt-0.5">Sur place au meilleur prix</p>
+              
+              <div className="mt-4 bg-[#D93025] text-white hover:bg-[#C22018] text-[10px] font-black tracking-widest px-5 py-2.5 rounded-xl uppercase inline-block transition-colors shadow-lg shadow-red-950/20">
+                Je découvre !
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Promotional Card 3: Route Promotion */}
+        <div className="relative rounded-3xl overflow-hidden shadow-xl aspect-[4/3] group cursor-pointer border border-slate-100">
+          <img 
+            src="/images/destination4.jpg" 
+            alt="L'Île Rouge en circuit" 
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-black/10 flex flex-col justify-end p-6">
+            <h4 className="text-white font-black text-lg tracking-wide uppercase leading-tight">L'Italie / Madagascar</h4>
+            <p className="text-white/80 text-xs font-semibold mt-1">En circuit au meilleur prix</p>
+            
+            <div className="mt-4 bg-[#0F1C0F] text-white border border-emerald-500/20 text-[10px] font-black tracking-widest px-5 py-2.5 rounded-xl uppercase inline-block transition-colors shadow-lg shadow-black/30">
+              C'est par ici ➔
+            </div>
+          </div>
+        </div>
+
+        {/* Points Forts Card */}
+        <div className="bg-slate-50/50 p-8 rounded-3xl border border-slate-100 shadow-sm">
+          <h3 className="text-xl font-serif text-forest-green text-center mb-6 italic font-bold">Les points forts</h3>
+          <div className="w-full h-px bg-slate-200 mb-6 relative">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-1 bg-forest-green/20 rounded-full" />
           </div>
 
-          <ul className="space-y-8">
-            <li className="flex gap-4 items-start group">
-              <div className="mt-1 w-5 h-5 rounded-full border-2 border-forest-green flex items-center justify-center shrink-0">
-                <div className="w-2 h-2 rounded-full bg-forest-green opacity-0 group-hover:opacity-100 transition-opacity" />
+          <ul className="space-y-6">
+            <li className="flex gap-3 items-start group">
+              <div className="mt-1 w-4 h-4 rounded-full border-2 border-forest-green flex items-center justify-center shrink-0">
+                <div className="w-1.5 h-1.5 rounded-full bg-forest-green opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
-              <p className="text-sm text-slate-700 leading-relaxed font-medium">
+              <p className="text-xs text-slate-700 leading-relaxed font-semibold">
                 La découverte et la visite des sites historiques majeurs des Hautes Terres.
               </p>
             </li>
-            <li className="flex gap-4 items-start group">
-              <div className="mt-1 w-5 h-5 rounded-full border-2 border-forest-green flex items-center justify-center shrink-0">
-                <div className="w-2 h-2 rounded-full bg-forest-green opacity-0 group-hover:opacity-100 transition-opacity" />
+            <li className="flex gap-3 items-start group">
+              <div className="mt-1 w-4 h-4 rounded-full border-2 border-forest-green flex items-center justify-center shrink-0">
+                <div className="w-1.5 h-1.5 rounded-full bg-forest-green opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
-              <p className="text-sm text-slate-700 leading-relaxed font-medium">
+              <p className="text-xs text-slate-700 leading-relaxed font-semibold">
                 Rencontres authentiques avec les artisans locaux et les agriculteurs.
               </p>
             </li>
-            <li className="flex gap-4 items-start group">
-              <div className="mt-1 w-5 h-5 rounded-full border-2 border-forest-green flex items-center justify-center shrink-0">
-                <div className="w-2 h-2 rounded-full bg-forest-green opacity-0 group-hover:opacity-100 transition-opacity" />
+            <li className="flex gap-3 items-start group">
+              <div className="mt-1 w-4 h-4 rounded-full border-2 border-forest-green flex items-center justify-center shrink-0">
+                <div className="w-1.5 h-1.5 rounded-full bg-forest-green opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
-              <p className="text-sm text-slate-700 leading-relaxed font-medium">
+              <p className="text-xs text-slate-700 leading-relaxed font-semibold">
                 Un contenu riche alliant recherches scientifiques et récits passionnants.
               </p>
             </li>
           </ul>
         </div>
 
-        {/* Nos Garanties Section */}
-        <div className="mt-8 bg-white p-10 rounded-xl border border-slate-100 shadow-sm text-center">
-          <h3 className="text-2xl font-serif text-forest-green mb-8 italic">Nos garanties</h3>
-          <div className="w-full h-px bg-slate-200 mb-8 relative">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-1 bg-forest-green/20 rounded-full" />
+        {/* Nos Garanties Card */}
+        <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm text-center">
+          <h3 className="text-xl font-serif text-forest-green mb-6 italic font-bold">Nos garanties</h3>
+          <div className="w-full h-px bg-slate-200 mb-6 relative">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-1 bg-forest-green/20 rounded-full" />
           </div>
 
           <div className="grid grid-cols-2 border-t border-l border-slate-100">
-            <div className="p-6 border-r border-b border-slate-100 flex flex-col items-center gap-4">
-              <Map className="w-8 h-8 text-slate-700" strokeWidth={1} />
-              <span className="text-[10px] font-bold text-slate-900 leading-tight uppercase tracking-widest">Expertise locale</span>
+            <div className="p-4 border-r border-b border-slate-100 flex flex-col items-center gap-3">
+              <Map className="w-6 h-6 text-slate-700" strokeWidth={1} />
+              <span className="text-[9px] font-bold text-slate-900 leading-tight uppercase tracking-widest">Expertise locale</span>
             </div>
-            <div className="p-6 border-r border-b border-slate-100 flex flex-col items-center gap-4">
-              <Puzzle className="w-8 h-8 text-slate-700" strokeWidth={1} />
-              <span className="text-[10px] font-bold text-slate-900 leading-tight uppercase tracking-widest">Expérience sur-mesure</span>
+            <div className="p-4 border-r border-b border-slate-100 flex flex-col items-center gap-3">
+              <Puzzle className="w-6 h-6 text-slate-700" strokeWidth={1} />
+              <span className="text-[9px] font-bold text-slate-900 leading-tight uppercase tracking-widest">Expérience sur-mesure</span>
             </div>
-            <div className="p-6 border-r border-b border-slate-100 flex flex-col items-center gap-4">
-              <CreditCard className="w-8 h-8 text-slate-700" strokeWidth={1} />
-              <span className="text-[10px] font-bold text-slate-900 leading-tight uppercase tracking-widest">Paiement sécurisé</span>
+            <div className="p-4 border-r border-b border-slate-100 flex flex-col items-center gap-3">
+              <CreditCard className="w-6 h-6 text-slate-700" strokeWidth={1} />
+              <span className="text-[9px] font-bold text-slate-900 leading-tight uppercase tracking-widest">Paiement sécurisé</span>
             </div>
-            <div className="p-6 border-r border-b border-slate-100 flex flex-col items-center gap-4">
-              <Globe className="w-8 h-8 text-slate-700" strokeWidth={1} />
-              <span className="text-[10px] font-bold text-slate-900 leading-tight uppercase tracking-widest">Engagement responsable</span>
+            <div className="p-4 border-r border-b border-slate-100 flex flex-col items-center gap-3">
+              <Globe className="w-6 h-6 text-slate-700" strokeWidth={1} />
+              <span className="text-[9px] font-bold text-slate-900 leading-tight uppercase tracking-widest">Engagement responsable</span>
             </div>
           </div>
         </div>
+
       </div>
     </div>
+  </div>
   )
 }

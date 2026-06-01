@@ -1,6 +1,7 @@
 import express from "express"
 import cors from "cors"
 import dotenv from "dotenv"
+import path from "path"
 
 // Load env vars
 dotenv.config()
@@ -13,6 +14,8 @@ import messageRoutes from "./routes/messages"
 import employeeRoutes from "./routes/employees"
 import roleRoutes from "./routes/roles"
 import taskRoutes from "./routes/tasks"
+import serviceRoutes from "./routes/services"
+import uploadRoutes from "./routes/uploads"
 import * as schedulerService from "./services/schedulerService"
 
 const app = express()
@@ -24,7 +27,8 @@ app.use(cors({
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }))
-app.use(express.json())
+app.use(express.json({ limit: "15mb" }))
+app.use("/uploads", express.static(path.resolve(__dirname, "../uploads")))
 
 // Health check
 app.get("/health", (req, res) => {
@@ -40,6 +44,8 @@ app.use("/api/messages", messageRoutes)
 app.use("/api/employees", employeeRoutes)
 app.use("/api/roles", roleRoutes)
 app.use("/api/tasks", taskRoutes)
+app.use("/api/services", serviceRoutes)
+app.use("/api/uploads", uploadRoutes)
 
 
 // Start Server
@@ -48,4 +54,3 @@ app.listen(PORT, () => {
   // Start email alert checking scheduler
   schedulerService.start()
 })
-

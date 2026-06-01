@@ -1,7 +1,26 @@
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { Check, X } from "lucide-react"
+import { Check, X, Loader2, Sparkles } from "lucide-react"
+import { api } from "@/lib/api"
 
 export function OurServices() {
+  const [services, setServices] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchServices() {
+      try {
+        const data = await api.getServices()
+        setServices(data)
+      } catch (err) {
+        console.error("Failed to fetch services", err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchServices()
+  }, [])
+
   return (
     <section className="bg-white py-24 px-6 md:px-12 w-full flex flex-col items-center">
       <div className="max-w-7xl mx-auto w-full">
@@ -28,40 +47,33 @@ export function OurServices() {
         </div>
 
         {/* Top Features Row */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-16">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
-            className="flex flex-col gap-2"
-          >
-            <h3 className="text-slate-900 text-xl font-bold">Travel by bus, car and minivan</h3>
-            <p className="text-slate-500 font-medium">Air conditioning guaranteed</p>
-          </motion.div>
-
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.3 }}
-            className="flex flex-col gap-2 md:text-center"
-          >
-            <h3 className="text-slate-900 text-xl font-bold">Entrance to the museums</h3>
-            <p className="text-slate-500 font-medium">50% discount on all admissions</p>
-          </motion.div>
-
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.4 }}
-            className="flex flex-col gap-2 md:text-right"
-          >
-            <h3 className="text-slate-900 text-xl font-bold">Travel with children and pets</h3>
-            <p className="text-slate-500 font-medium">Possibility to rent the stroller</p>
-          </motion.div>
-        </div>
+        {loading ? (
+          <div className="flex justify-center items-center py-20 w-full">
+            <Loader2 className="w-8 h-8 text-forest-green animate-spin" />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16 w-full">
+            {services.map((srv, idx) => (
+              <motion.div 
+                key={srv.id || idx}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: idx * 0.1 }}
+                className="flex flex-col gap-3 p-6 rounded-2xl border border-slate-100 hover:border-forest-green/20 hover:shadow-lg hover:shadow-forest-green/5 bg-slate-50/50 hover:bg-white transition-all duration-300 relative group"
+              >
+                <div className="w-10 h-10 rounded-xl bg-forest-green/10 text-forest-green flex items-center justify-center font-bold mb-1 group-hover:scale-110 transition-transform duration-300">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <h3 className="text-slate-900 text-lg font-bold group-hover:text-forest-green transition-colors duration-300">{srv.title}</h3>
+                <p className="text-slate-500 font-medium text-sm leading-relaxed">{srv.description}</p>
+              </motion.div>
+            ))}
+            {services.length === 0 && (
+              <p className="col-span-full text-center text-slate-400 font-semibold py-6">Aucun service disponible pour le moment.</p>
+            )}
+          </div>
+        )}
 
         {/* Divider */}
         <div className="w-full h-px bg-slate-200 mb-16"></div>

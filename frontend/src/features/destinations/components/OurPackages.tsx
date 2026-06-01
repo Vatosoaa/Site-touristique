@@ -3,45 +3,46 @@ import { motion } from "framer-motion"
 import { MapPin } from "lucide-react"
 import { api } from "@/lib/api"
 
-const INITIAL_PACKAGES = [
+const FALLBACK_SERVICES = [
   {
     id: 1,
     image: "/images/destination2.jpg",
-    region: "Europe",
-    title: "Winter Action",
-    price: "$700",
-    description: "Lorem ipsum dolor sit amet, cons ectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa."
+    location: "Nosy Be",
+    title: "Hébergement Chic Nosy Be",
+    price: "Ar 450 000 / nuit",
+    description: "Profitez d'un séjour inoubliable au bord de la plage à Nosy Be avec tout le confort moderne et petit-déjeuner inclus."
   },
   {
     id: 2,
     image: "/images/destination3.jpg",
-    region: "Thailand",
-    title: "Snow Surfing",
-    price: "$1200",
-    description: "Lorem ipsum dolor sit amet, cons ectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa."
+    location: "Sainte Marie",
+    title: "Observation des Baleines",
+    price: "Ar 250 000 / pers",
+    description: "Vivez l'expérience magique de l'observation des baleines à bosse à Sainte Marie avec nos guides locaux certifiés."
   },
   {
     id: 3,
     image: "/images/destination4.jpg",
-    region: "Africa",
-    title: "Ropeway",
-    price: "$900",
-    description: "Lorem ipsum dolor sit amet, cons ectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa."
+    location: "Isalo",
+    title: "Randonnée Parc de l'Isalo",
+    price: "Ar 350 000 / pers",
+    description: "Explorez les paysages spectaculaires, canyons mystiques et piscines naturelles du parc national de l'Isalo."
   }
 ]
 
 export function OurPackages() {
-  const [packages, setPackages] = useState<any[]>(INITIAL_PACKAGES)
+  const [services, setServices] = useState<any[]>(FALLBACK_SERVICES)
 
   useEffect(() => {
-    api.getPackages()
+    api.getServices()
       .then((data) => {
         if (data && data.length > 0) {
-          setPackages(data)
+          setServices(data)
         }
       })
-      .catch((err) => console.log("Failed to fetch packages, using fallback", err))
+      .catch((err) => console.log("Failed to fetch services, using fallback", err))
   }, [])
+
   return (
     <section className="bg-[#F8FAFC] py-24 px-6 md:px-12 flex flex-col items-center">
       {/* Titles */}
@@ -62,15 +63,15 @@ export function OurPackages() {
           transition={{ delay: 0.1 }}
           className="text-5xl md:text-6xl font-bold text-[#F59E0B]"
         >
-          Our Packages
+          Nos offres de services
         </motion.h2>
       </div>
 
       {/* Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl w-full">
-        {packages.map((pkg, index) => (
+        {services.map((srv, index) => (
           <motion.div 
-            key={pkg.id}
+            key={srv.id}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -80,15 +81,15 @@ export function OurPackages() {
             {/* Image */}
             <div className="h-64 w-full relative">
               <img 
-                src={pkg.image} 
-                alt={pkg.title} 
+                src={srv.image || "/images/destination2.jpg"} 
+                alt={srv.title} 
                 className="w-full h-full object-cover"
               />
             </div>
             
-            {/* Orange Region Banner */}
+            {/* Orange Location Banner */}
             <div className="bg-[#F59E0B] py-2 px-6">
-              <span className="text-white font-semibold text-lg">{pkg.region}</span>
+              <span className="text-white font-semibold text-lg">{srv.location || "Madagascar"}</span>
             </div>
 
             {/* Content Details */}
@@ -96,13 +97,21 @@ export function OurPackages() {
               <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center gap-2 text-slate-900 font-bold text-lg">
                   <MapPin className="w-5 h-5 text-black" fill="black" stroke="white" strokeWidth={1} />
-                  <span>{pkg.title}</span>
+                  <span>{srv.title}</span>
                 </div>
-                <span className="font-semibold text-slate-800">{pkg.price}</span>
+                {srv.price && (
+                  <span className="font-semibold text-slate-800 shrink-0">{srv.price}</span>
+                )}
               </div>
               <p className="text-sm text-slate-600 leading-relaxed font-medium">
-                {pkg.description}
+                {srv.description}
               </p>
+              {(srv.distance || srv.rating) && (
+                <div className="mt-auto pt-4 flex justify-between items-center border-t border-slate-100 text-xs text-slate-500 font-semibold">
+                  {srv.distance && <span>Durée : {srv.distance}</span>}
+                  {srv.rating && <span className="text-amber-500">★ {srv.rating.toFixed(1)}</span>}
+                </div>
+              )}
             </div>
           </motion.div>
         ))}
@@ -110,3 +119,4 @@ export function OurPackages() {
     </section>
   )
 }
+

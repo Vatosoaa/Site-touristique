@@ -300,8 +300,48 @@ class ApiClient {
     })
     return this.handleResponse<any>(response)
   }
+
+  // --- Services API ---
+  async getServices(): Promise<any[]> {
+    const response = await fetch(`${API_BASE_URL}/services`)
+    return this.handleResponse<any[]>(response)
+  }
+
+  async createService(service: any): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/services`, {
+      method: "POST",
+      headers: this.getHeaders(),
+      body: JSON.stringify(service),
+    })
+    return this.handleResponse<any>(response)
+  }
+
+  async updateService(id: number, service: any): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/services/${id}`, {
+      method: "PUT",
+      headers: this.getHeaders(),
+      body: JSON.stringify(service),
+    })
+    return this.handleResponse<any>(response)
+  }
+
+  async deleteService(id: number): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/services/${id}`, {
+      method: "DELETE",
+      headers: this.getHeaders(),
+    })
+    return this.handleResponse<any>(response)
+  }
+
+  async uploadServiceImage(fileName: string, dataUrl: string): Promise<{ image: string }> {
+    const response = await fetch(`${API_BASE_URL}/uploads/service-image`, {
+      method: "POST",
+      headers: this.getHeaders(),
+      body: JSON.stringify({ fileName, dataUrl }),
+    })
+    return this.handleResponse<{ image: string }>(response)
+  }
 }
 
 export const api = new ApiClient()
-
 

@@ -1,6 +1,8 @@
 import { motion } from "framer-motion"
 import { Star, Heart } from "lucide-react"
+import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
+import { api } from "@/lib/api"
 
 const RESORTS = [
   {
@@ -33,12 +35,28 @@ const RESORTS = [
 ]
 
 export function Featured() {
+  const [services, setServices] = useState<any[]>([])
   const navigate = useNavigate();
+
+  useEffect(() => {
+    async function fetchServices() {
+      try {
+        const data = await api.getServices()
+        setServices(data)
+      } catch (err) {
+        console.error("Failed to fetch services", err)
+      }
+    }
+
+    fetchServices()
+  }, [])
 
   const handleBooking = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click
     navigate("/details#booking-form");
   };
+
+  const displayedServices = services.length > 0 ? services : RESORTS
 
   return (
     <section className="py-16 px-12 max-w-7xl mx-auto">
@@ -47,7 +65,7 @@ export function Featured() {
       </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">
-        {RESORTS.map((resort, index) => (
+        {displayedServices.map((resort, index) => (
           <motion.div
             key={resort.id}
             initial={{ opacity: 0, y: 20 }}
@@ -60,8 +78,8 @@ export function Featured() {
             {/* Image Container */}
             <div className="relative aspect-[4/3] rounded-2xl overflow-hidden mb-4 bg-slate-100">
               <img 
-                src={resort.image} 
-                alt={resort.name} 
+                src={resort.image || "/images/detail1.jpg"} 
+                alt={resort.name || resort.title} 
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?q=80&w=800&auto=format&fit=crop"
@@ -80,12 +98,12 @@ export function Featured() {
                 <span className="text-sm text-slate-500">{resort.location}</span>
                 <div className="flex items-center gap-1">
                   <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                  <span className="text-sm font-bold text-slate-900">{resort.rating}</span>
+                  <span className="text-sm font-bold text-slate-900">{Number(resort.rating || 5).toFixed(1)}</span>
                 </div>
               </div>
               
               <h3 className="text-base font-bold text-slate-900 leading-snug">
-                {resort.name}
+                {resort.name || resort.title}
               </h3>
               
               <span className="text-sm text-slate-400">

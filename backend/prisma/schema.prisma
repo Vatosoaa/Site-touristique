@@ -87,4 +87,15 @@ model Task {
   createdAt   DateTime   @default(now())
 }
 
+model Service {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  location    String   @default("")
+  distance    String   @default("")
+  price       String   @default("")
+  rating      Float    @default(5.0)
+  image       String   @default("")
+  createdAt   DateTime @default(now())
+}
 

@@ -243,6 +243,24 @@ async function main() {
   }
   console.log("Employees seeded.")
 
+  // 7. Create Services
+  const servicesData = [
+    { title: "Réservation de Vols", description: "Assistance et réservation de billets nationaux et internationaux pour Madagascar." },
+    { title: "Hébergements de Prestige", description: "Sélection d'hôtels et d'écolodges haut de gamme partenaires." },
+    { title: "Tours Guidés", description: "Accompagnement professionnel sur mesure à travers l'île." },
+    { title: "Location de Véhicules", description: "Mise à disposition de 4x4 avec chauffeur guide expérimenté." }
+  ]
+
+  for (const srv of servicesData) {
+    const existing = await (prisma as any).service.findFirst({
+      where: { title: srv.title }
+    })
+    if (!existing) {
+      await (prisma as any).service.create({ data: srv })
+    }
+  }
+  console.log("Services seeded.")
+
   console.log("Seeding complete.")
 }
 

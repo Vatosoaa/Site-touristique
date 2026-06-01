@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import {
   LayoutDashboard,
@@ -26,7 +26,9 @@ import {
   PlusCircle,
   Shield,
   ShieldAlert,
-  Search
+  Search,
+  Eye,
+  X
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -36,6 +38,8 @@ import { TourDialog } from "./components/TourDialog"
 import { PackageDialog } from "./components/PackageDialog"
 import { BlogDialog } from "./components/BlogDialog"
 import { EmployeeDialog } from "./components/EmployeeDialog"
+import { ServiceDialog } from "./components/ServiceDialog"
+import { ServiceDetailsDialog } from "./components/ServiceDetailsDialog"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { DashboardChart } from "./components/DashboardChart"
 import AgendaTab from "./components/AgendaTab"
@@ -65,6 +69,7 @@ export default function AdminDashboard() {
   const [messages, setMessages] = useState<any[]>([])
   const [employees, setEmployees] = useState<any[]>([])
   const [roles, setRoles] = useState<any[]>([])
+  const [services, setServices] = useState<any[]>([])
   const [username, setUsername] = useState("Admin")
   
   // Loading & Error States
@@ -76,8 +81,13 @@ export default function AdminDashboard() {
   const [isPackageDialogOpen, setIsPackageDialogOpen] = useState(false)
   const [isBlogDialogOpen, setIsBlogDialogOpen] = useState(false)
   const [isEmployeeDialogOpen, setIsEmployeeDialogOpen] = useState(false)
+  const [isServiceDialogOpen, setIsServiceDialogOpen] = useState(false)
+  const [isServiceDetailsOpen, setIsServiceDetailsOpen] = useState(false)
   const [selectedItem, setSelectedItem] = useState<any>(null)
+  const [selectedServiceDetail, setSelectedServiceDetail] = useState<any>(null)
   const [selectedEmployee, setSelectedEmployee] = useState<any>(null)
+  const [toasts, setToasts] = useState<Array<{ id: number; title: string; message?: string; variant: "success" | "error" | "info" }>>([])
+  const toastTimers = useRef<number[]>([])
 
   // Employees & Roles sub-states
   const [employeeSubTab, setEmployeeSubTab] = useState<"list" | "roles">("list")
@@ -86,6 +96,22 @@ export default function AdminDashboard() {
 
 
   const navigate = useNavigate()
+
+  const pushToast = (title: string, message?: string, variant: "success" | "error" | "info" = "success") => {
+    const id = Date.now() + Math.floor(Math.random() * 1000)
+    setToasts((current) => [...current, { id, title, message, variant }])
+    const timer = window.setTimeout(() => {
+      setToasts((current) => current.filter((toast) => toast.id !== id))
+    }, 3500)
+    toastTimers.current.push(timer)
+  }
+
+  useEffect(() => {
+    return () => {
+      toastTimers.current.forEach((timer) => window.clearTimeout(timer))
+      toastTimers.current = []
+    }
+  }, [])
 
   useEffect(() => {
     if (!api.isAuthenticated()) {
@@ -100,13 +126,14 @@ export default function AdminDashboard() {
     setLoading(true)
     setError(null)
     try {
-      const [toursData, packagesData, blogData, messagesData, employeesData, rolesData] = await Promise.all([
+      const [toursData, packagesData, blogData, messagesData, employeesData, rolesData, servicesData] = await Promise.all([
         api.getTours().catch(() => []),
         api.getPackages().catch(() => []),
         api.getBlogPosts().catch(() => []),
         api.getMessages().catch(() => []),
         api.getEmployees().catch(() => []),
-        api.getRoles().catch(() => [])
+        api.getRoles().catch(() => []),
+        api.getServices().catch(() => [])
       ])
       setTours(toursData)
       setPackages(packagesData)
@@ -114,6 +141,7 @@ export default function AdminDashboard() {
       setMessages(messagesData)
       setEmployees(employeesData)
       setRoles(rolesData)
+      setServices(servicesData)
       if (rolesData.length > 0 && !selectedRoleId) {
         setSelectedRoleId(rolesData[0].id)
       }
@@ -198,6 +226,37 @@ export default function AdminDashboard() {
       await api.deleteMessage(id)
       setMessages(messages.filter(m => m.id !== id))
     }
+  }
+
+  // --- Service Operations ---
+  const handleSaveService = async (serviceData: any) => {
+    if (selectedItem) {
+      const updated = await api.updateService(selectedItem.id, serviceData)
+      setServices(services.map(s => s.id === selectedItem.id ? updated : s))
+      setSelectedItem(null)
+    } else {
+      const created = await api.createService(serviceData)
+      setServices([...services, created])
+    }
+    fetchData()
+  }
+
+  const handleDeleteService = async (id: number) => {
+    if (window.confirm("Êtes-vous sûr de vouloir supprimer ce service ?")) {
+      try {
+        await api.deleteService(id)
+        setServices(services.filter(s => s.id !== id))
+        fetchData()
+        pushToast("Service supprimé", "L'élément a été retiré du tableau.", "success")
+      } catch (err: any) {
+        pushToast("Suppression impossible", err.message || "Une erreur est survenue.", "error")
+      }
+    }
+  }
+
+  const handleOpenServiceDetails = (service: any) => {
+    setSelectedServiceDetail(service)
+    setIsServiceDetailsOpen(true)
   }
 
   // --- Employee Operations ---
@@ -309,7 +368,7 @@ export default function AdminDashboard() {
                 items: [
                   { id: "agenda", label: "Agenda", icon: Calendar },
                   { id: "employes", label: "Employés", icon: Briefcase },
-                  { id: "services", label: "Services", icon: Bell },
+                  { id: "services", label: "Service", icon: Bell },
                   { id: "tours", label: "Destinations", icon: Map },
                   { id: "reservations", label: "Réservations", icon: ShoppingCart },
                   { id: "messages", label: "Messages", icon: Mail }
@@ -1313,22 +1372,114 @@ export default function AdminDashboard() {
             {/* SERVICES TAB */}
             {activeTab === "services" && (
               <div className="space-y-6">
-                <span className="text-sm text-muted-foreground font-semibold">4 Services principaux disponibles</span>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {[
-                    { title: "Réservation de Vols", desc: "Assistance et réservation de billets nationaux et internationaux pour Madagascar." },
-                    { title: "Hébergements de Prestige", desc: "Sélection d'hôtels et d'écolodges haut de gamme partenaires." },
-                    { title: "Tours Guidés", desc: "Accompagnement professionnel sur mesure à travers l'île." },
-                    { title: "Location de Véhicules", desc: "Mise à disposition de 4x4 avec chauffeur guide expérimenté." }
-                  ].map((srv, idx) => (
-                    <Card key={idx} className="bg-card border border-border p-6 rounded-3xl shadow-md">
-                      <h4 className="text-lg font-bold text-foreground flex items-center gap-2">
-                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                        {srv.title}
-                      </h4>
-                      <p className="text-sm text-muted-foreground mt-2 leading-relaxed">{srv.desc}</p>
-                    </Card>
-                  ))}
+                <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-card border border-border p-4 rounded-3xl shadow-sm">
+                  <span className="text-sm text-muted-foreground font-semibold">{services.length} services principaux disponibles</span>
+                  <Button
+                    onClick={() => {
+                      setSelectedItem(null)
+                      setIsServiceDialogOpen(true)
+                    }}
+                    className="w-full sm:w-auto bg-[#0B2527] text-white hover:bg-[#0B2527]/90 rounded-xl font-bold flex items-center justify-center gap-2 cursor-pointer transition-all"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Ajouter un service
+                  </Button>
+                </div>
+
+                <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-[960px] border-collapse text-left">
+                      <thead>
+                        <tr className="border-b border-border/60 bg-muted/30 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                          <th className="px-4 py-3">Service</th>
+                          <th className="px-4 py-3">Lieu</th>
+                          <th className="px-4 py-3">Durée</th>
+                          <th className="px-4 py-3">Prix</th>
+                          <th className="px-4 py-3">Note</th>
+                          <th className="px-4 py-3">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border/50">
+                        {services.map((srv) => (
+                          <tr key={srv.id} className="align-top hover:bg-muted/20 transition-colors">
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-3">
+                                <div className="h-11 w-14 overflow-hidden rounded-lg bg-muted shrink-0">
+                                  {srv.image ? (
+                                    <img
+                                      src={srv.image}
+                                      alt={srv.title}
+                                      className="h-full w-full object-cover"
+                                    />
+                                  ) : (
+                                    <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+                                      <Bell className="h-4 w-4" />
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="min-w-0">
+                                  <div className="flex items-center gap-2">
+                                    <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0" />
+                                    <p className="truncate text-sm font-bold text-foreground">{srv.title}</p>
+                                  </div>
+                                  <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">
+                                    {srv.description}
+                                  </p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-sm text-foreground">{srv.location || "-"}</td>
+                            <td className="px-4 py-3 text-sm text-muted-foreground">{srv.distance || "-"}</td>
+                            <td className="px-4 py-3 text-sm font-semibold text-emerald-600 dark:text-emerald-400">{srv.price || "-"}</td>
+                            <td className="px-4 py-3 text-sm font-semibold text-amber-500">
+                              {Number(srv.rating || 5).toFixed(1)}
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-1.5">
+                                <Button
+                                  onClick={() => handleOpenServiceDetails(srv)}
+                                  variant="ghost"
+                                  size="icon-sm"
+                                  className="cursor-pointer"
+                                  title="Voir détail"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  onClick={() => {
+                                    setSelectedItem(srv)
+                                    setIsServiceDialogOpen(true)
+                                  }}
+                                  variant="outline"
+                                  size="icon-sm"
+                                  className="cursor-pointer"
+                                  title="Modifier"
+                                >
+                                  <Edit2 className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  onClick={() => handleDeleteService(srv.id)}
+                                  variant="destructive"
+                                  size="icon-sm"
+                                  className="cursor-pointer"
+                                  title="Supprimer"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                        {services.length === 0 && (
+                          <tr>
+                            <td colSpan={6} className="px-4 py-14 text-center text-sm font-semibold text-muted-foreground">
+                              Aucun service enregistré pour le moment.
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             )}
@@ -1461,6 +1612,76 @@ export default function AdminDashboard() {
         employee={selectedEmployee}
         roles={roles}
       />
+
+      <ServiceDialog
+        isOpen={isServiceDialogOpen}
+        onClose={() => {
+          setIsServiceDialogOpen(false)
+          setSelectedItem(null)
+        }}
+        onSave={handleSaveService}
+        onSuccess={(message) => pushToast("Service", message, "success")}
+        onError={(message) => pushToast("Erreur service", message, "error")}
+        service={selectedItem}
+      />
+
+      <ServiceDetailsDialog
+        isOpen={isServiceDetailsOpen}
+        onClose={() => {
+          setIsServiceDetailsOpen(false)
+          setSelectedServiceDetail(null)
+        }}
+        service={selectedServiceDetail}
+      />
+
+      <div className="pointer-events-none fixed right-4 top-4 z-[60] flex w-[min(24rem,calc(100vw-2rem))] flex-col gap-3">
+        {toasts.map((toast) => (
+          <div
+            key={toast.id}
+            className={`pointer-events-auto rounded-2xl border px-4 py-3 shadow-xl backdrop-blur-md transition-all ${
+              toast.variant === "success"
+                ? "border-emerald-500/20 bg-emerald-50/95 text-emerald-950 dark:border-emerald-500/30 dark:bg-emerald-950/90 dark:text-emerald-50"
+                : toast.variant === "error"
+                  ? "border-red-500/20 bg-red-50/95 text-red-950 dark:border-red-500/30 dark:bg-red-950/90 dark:text-red-50"
+                  : "border-slate-300/40 bg-white/95 text-slate-900 dark:border-slate-700 dark:bg-slate-900/90 dark:text-slate-50"
+            }`}
+          >
+            <div className="flex items-start gap-3">
+              <div
+                className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
+                  toast.variant === "success"
+                    ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-300"
+                    : toast.variant === "error"
+                      ? "bg-red-500/15 text-red-600 dark:text-red-300"
+                      : "bg-slate-500/15 text-slate-600 dark:text-slate-300"
+                }`}
+              >
+                {toast.variant === "success" ? (
+                  <CheckCircle2 className="h-4 w-4" />
+                ) : toast.variant === "error" ? (
+                  <ShieldAlert className="h-4 w-4" />
+                ) : (
+                  <Bell className="h-4 w-4" />
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-bold leading-tight">{toast.title}</p>
+                {toast.message && (
+                  <p className="mt-1 text-xs leading-relaxed opacity-80">{toast.message}</p>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => setToasts((current) => current.filter((item) => item.id !== toast.id))}
+                className="pointer-events-auto -mr-1 -mt-1 rounded-lg p-1 opacity-60 transition hover:opacity-100"
+                aria-label="Fermer la notification"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
 
 
     </div>

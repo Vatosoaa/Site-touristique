@@ -1,11 +1,35 @@
+import { useState } from "react"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { ContactHero } from "./components/ContactHero"
 import { motion } from "framer-motion"
-import { Phone, Mail, Send, Bell } from "lucide-react"
+import { Phone, Mail, Send, Bell, CheckCircle, AlertCircle, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { api } from "@/lib/api"
 
 export default function Contact() {
+  const [name, setName] = useState("")
+  const [email, setEmail] = useState("")
+  const [message, setMessage] = useState("")
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle")
+  const [errorMsg, setErrorMsg] = useState("")
+
+  const handleContactSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setStatus("loading")
+    setErrorMsg("")
+    try {
+      await api.submitMessage(name, email, message)
+      setStatus("success")
+      setName("")
+      setEmail("")
+      setMessage("")
+    } catch (err: any) {
+      setStatus("error")
+      setErrorMsg(err.message || "Failed to send message. Please try again.")
+    }
+  }
+
   return (
     <main className="min-h-screen bg-[#F8FAFC]">
       <Navbar />
@@ -47,31 +71,70 @@ export default function Contact() {
             viewport={{ once: true }}
             className="bg-[#121212] p-10 rounded-xl shadow-2xl border border-white/5"
           >
-            <form className="space-y-6">
+            <form onSubmit={handleContactSubmit} className="space-y-6">
+              {/* Success message */}
+              {status === "success" && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex items-center gap-3 bg-green-500/10 border border-green-500/30 text-green-400 p-4 rounded-xl"
+                >
+                  <CheckCircle className="w-5 h-5 shrink-0" />
+                  <span className="font-semibold text-sm">Message sent successfully! We'll get back to you shortly.</span>
+                </motion.div>
+              )}
+
+              {/* Error message */}
+              {status === "error" && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex items-center gap-3 bg-red-500/10 border border-red-500/30 text-red-400 p-4 rounded-xl"
+                >
+                  <AlertCircle className="w-5 h-5 shrink-0" />
+                  <span className="font-semibold text-sm">{errorMsg}</span>
+                </motion.div>
+              )}
+
               <div className="space-y-1">
                 <input 
                   type="text" 
-                  placeholder="Name" 
+                  placeholder="Name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
                   className="w-full px-6 py-4 rounded-lg bg-white text-slate-900 outline-none focus:ring-2 focus:ring-orange-yellow transition-all" 
                 />
               </div>
               <div className="space-y-1">
                 <input 
                   type="email" 
-                  placeholder="Email" 
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
                   className="w-full px-6 py-4 rounded-lg bg-white text-slate-900 outline-none focus:ring-2 focus:ring-orange-yellow transition-all" 
                 />
               </div>
               <div className="space-y-1">
                 <textarea 
                   rows={4} 
-                  placeholder="Message" 
+                  placeholder="Message"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  required
                   className="w-full px-6 py-4 rounded-lg bg-white text-slate-900 outline-none focus:ring-2 focus:ring-orange-yellow transition-all resize-none"
                 ></textarea>
               </div>
 
-              <Button className="w-full py-8 rounded-lg bg-orange-yellow hover:bg-orange-yellow/90 text-white font-black text-xl tracking-widest uppercase transition-all">
-                SUBMIT
+              <Button
+                type="submit"
+                disabled={status === "loading"}
+                className="w-full py-8 rounded-lg bg-orange-yellow hover:bg-orange-yellow/90 text-white font-black text-xl tracking-widest uppercase transition-all flex justify-center items-center gap-3"
+              >
+                {status === "loading" ? (
+                  <><Loader2 className="w-5 h-5 animate-spin" /> Sending...</>
+                ) : "SUBMIT"}
               </Button>
             </form>
           </motion.div>

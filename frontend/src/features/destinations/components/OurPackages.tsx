@@ -1,7 +1,9 @@
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { MapPin } from "lucide-react"
+import { api } from "@/lib/api"
 
-const packages = [
+const INITIAL_PACKAGES = [
   {
     id: 1,
     image: "/images/destination2.jpg",
@@ -29,6 +31,17 @@ const packages = [
 ]
 
 export function OurPackages() {
+  const [packages, setPackages] = useState<any[]>(INITIAL_PACKAGES)
+
+  useEffect(() => {
+    api.getPackages()
+      .then((data) => {
+        if (data && data.length > 0) {
+          setPackages(data)
+        }
+      })
+      .catch((err) => console.log("Failed to fetch packages, using fallback", err))
+  }, [])
   return (
     <section className="bg-[#F8FAFC] py-24 px-6 md:px-12 flex flex-col items-center">
       {/* Titles */}

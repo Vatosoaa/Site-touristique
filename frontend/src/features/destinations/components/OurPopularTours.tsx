@@ -1,49 +1,64 @@
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
+import { api } from "@/lib/api"
 
-const images = [
-  "/images/destination2.jpg",
-  "/images/destination3.jpg",
-  "/images/destination4.jpg"
-]
-
-const tours = [
+const INITIAL_TOURS = [
   {
     title: "Thailand",
     price: "$599",
     amenities: "Beach | Hotel | Vehicle",
-    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+    image: "/images/destination2.jpg"
   },
   {
     title: "North Africa",
     price: "$800",
     amenities: "Beach | Hotel | Vehicle",
-    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+    image: "/images/destination3.jpg"
   },
   {
     title: "South Korea",
     price: "$650",
     amenities: "Beach | Hotel | Vehicle",
-    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+    image: "/images/destination4.jpg"
   },
   {
     title: "Switzerland",
     price: "$700",
     amenities: "Beach | Hotel | Vehicle",
-    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+    image: "/images/destination2.jpg"
   }
 ]
 
 export function OurPopularTours() {
+  const [tours, setTours] = useState<any[]>(INITIAL_TOURS)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+
+  // Fetch from database
+  useEffect(() => {
+    api.getTours()
+      .then((data) => {
+        if (data && data.length > 0) {
+          setTours(data)
+        }
+      })
+      .catch((err) => console.log("Failed to fetch tours, using fallback", err))
+  }, [])
+
+  // Build images list dynamically from tours
+  const tourImages = tours.map(t => t.image).filter(Boolean)
+  const sliderImages = tourImages.length > 0 ? tourImages : ["/images/destination2.jpg", "/images/destination3.jpg"]
 
   // Auto-slide effect
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length)
+      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % sliderImages.length)
     }, 4000)
     return () => clearInterval(timer)
-  }, [])
+  }, [sliderImages.length])
 
   return (
     <section className="bg-white py-24 px-6 md:px-12 w-full">
@@ -84,7 +99,7 @@ export function OurPopularTours() {
             <AnimatePresence mode="wait">
               <motion.img
                 key={currentImageIndex}
-                src={images[currentImageIndex]}
+                src={sliderImages[currentImageIndex]}
                 alt="Popular tour destination"
                 initial={{ opacity: 0, scale: 1.05 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -96,7 +111,7 @@ export function OurPopularTours() {
             
             {/* Slider Indicators */}
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-              {images.map((_, idx) => (
+              {sliderImages.map((_, idx) => (
                 <button
                   key={idx}
                   onClick={() => setCurrentImageIndex(idx)}

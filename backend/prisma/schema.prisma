@@ -1,0 +1,75 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Admin {
+  id       String @id @default(uuid())
+  username String @unique
+  password String
+}
+
+model Tour {
+  id          Int    @id @default(autoincrement())
+  title       String
+  price       String
+  amenities   String
+  description String
+  image       String
+}
+
+model Package {
+  id          Int    @id @default(autoincrement())
+  title       String
+  region      String
+  price       String
+  description String
+  image       String
+}
+
+model BlogPost {
+  id                Int      @id @default(autoincrement())
+  title             String
+  excerpt           String
+  date              String
+  categories        String[]
+  contentParagraphs String[]
+  contentImages     String[]
+  tags              String[]
+  authorQuote       String?
+  image             String
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String
+  message   String
+  createdAt DateTime @default(now())
+}
+
+model Role {
+  id          Int        @id @default(autoincrement())
+  name        String     @unique
+  description String?
+  permissions String[]   // e.g. ["manage_tours", "manage_packages", "manage_blog", "manage_messages", "manage_employees"]
+  employees   Employee[]
+}
+
+model Employee {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  phone     String?
+  bio       String?
+  status    String   @default("Actif") // "Actif", "En congé", "Inactif"
+  color     String   @default("bg-indigo-500")
+  roleId    Int
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  createdAt DateTime @default(now())
+}
+

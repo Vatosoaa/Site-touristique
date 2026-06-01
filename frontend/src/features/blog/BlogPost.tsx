@@ -1,20 +1,74 @@
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
-import { Clock, Tag, ChevronLeft, Facebook, Twitter } from "lucide-react"
+import { Clock, Tag, ChevronLeft, Facebook, Twitter, Loader2 } from "lucide-react"
 import { Link, useParams, Navigate } from "react-router-dom"
 import { blogPosts } from "@/data/blogPosts"
+import { api } from "@/lib/api"
 
 export default function BlogPost() {
   const { id } = useParams()
-  const post = blogPosts.find(p => p.id === Number(id))
+  const [post, setPost] = useState<any | null>(null)
+  const [prevPost, setPrevPost] = useState<any | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [notFound, setNotFound] = useState(false)
 
-  if (!post) {
-    return <Navigate to="/blog" replace />
+  useEffect(() => {
+    setLoading(true)
+    setNotFound(false)
+    
+    const fetchPostData = async () => {
+      try {
+        // Try fetching single post from backend
+        const dbPost = await api.getBlogPost(Number(id))
+        setPost(dbPost)
+
+        // Find prev post in backend list
+        const allPosts = await api.getBlogPosts()
+        const currentIndex = allPosts.findIndex((p: any) => p.id === dbPost.id)
+        if (currentIndex !== -1 && allPosts.length > 1) {
+          const prev = allPosts[(currentIndex + 1) % allPosts.length]
+          setPrevPost(prev)
+        }
+        setLoading(false)
+      } catch (error) {
+        console.log("Failed to fetch blog post from backend, checking fallback data...", error)
+        // Fallback to static mock data
+        const localPost = blogPosts.find(p => p.id === Number(id))
+        if (localPost) {
+          setPost(localPost)
+          const localPrev = blogPosts.find(p => p.id === (localPost.id === 1 ? blogPosts.length : localPost.id - 1))
+          setPrevPost(localPrev || null)
+          setLoading(false)
+        } else {
+          setNotFound(true)
+          setLoading(false)
+        }
+      }
+    }
+
+    fetchPostData()
+  }, [id])
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-[#F8FAFC]">
+        <Navbar />
+        <div className="min-h-[80vh] w-full flex items-center justify-center">
+          <div className="flex flex-col items-center gap-3">
+            <Loader2 className="w-10 h-10 text-orange-yellow animate-spin" />
+            <span className="text-sm font-semibold text-slate-500">Loading article...</span>
+          </div>
+        </div>
+        <Footer hideQuestionSection={true} />
+      </main>
+    )
   }
 
-  // Find previous post for the bottom link, simple logic
-  const prevPost = blogPosts.find(p => p.id === (post.id === 1 ? blogPosts.length : post.id - 1))
+  if (notFound || !post) {
+    return <Navigate to="/blog" replace />
+  }
 
   return (
     <main className="min-h-screen bg-[#F8FAFC]">
@@ -77,7 +131,7 @@ export default function BlogPost() {
               <span>{post.date}</span>
             </div>
             <div className="flex items-center gap-3">
-              {post.categories.map((cat, idx) => (
+              {post.categories.map((cat: string, idx: number) => (
                 <span key={idx} className="px-4 py-1.5 rounded-full bg-forest-green/10 text-forest-green text-sm font-semibold">
                   {cat}
                 </span>
@@ -107,7 +161,7 @@ export default function BlogPost() {
                 <span>Tags:</span>
               </div>
               <div className="flex items-center gap-2">
-                {post.tags.map((tag, idx) => (
+                {post.tags.map((tag: string, idx: number) => (
                   <span key={idx} className="px-3 py-1 rounded bg-slate-200 text-slate-700 text-xs font-bold uppercase">
                     {tag}
                   </span>

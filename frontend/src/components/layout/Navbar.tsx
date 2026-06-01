@@ -80,12 +80,16 @@ export function Navbar() {
 
         {/* Action Icons */}
         <div className="flex items-center gap-2 relative z-[110]">
-          <button className="p-2 hover:bg-slate-100 rounded-full transition-colors group">
+          <Link
+            to="/admin/login"
+            className="p-2 hover:bg-slate-100 rounded-full transition-colors group"
+            aria-label="Admin Login"
+          >
             <UserCircle className={cn(
               "w-6 h-6 transition-colors",
               isMobileMenuOpen ? "text-white/60" : "text-slate-800 group-hover:text-forest-green"
             )} />
-          </button>
+          </Link>
 
           {/* Toggle Button */}
           <button

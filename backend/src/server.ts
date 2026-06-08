@@ -4,7 +4,7 @@ import dotenv from "dotenv"
 import path from "path"
 
 // Load env vars
-dotenv.config()
+dotenv.config({ path: path.resolve(__dirname, "../.env") })
 
 import authRoutes from "./routes/auth"
 import tourRoutes from "./routes/tours"
@@ -16,6 +16,7 @@ import roleRoutes from "./routes/roles"
 import taskRoutes from "./routes/tasks"
 import serviceRoutes from "./routes/services"
 import uploadRoutes from "./routes/uploads"
+import temoignageRoutes from "./routes/temoignages"
 import * as schedulerService from "./services/schedulerService"
 
 const app = express()
@@ -46,6 +47,7 @@ app.use("/api/roles", roleRoutes)
 app.use("/api/tasks", taskRoutes)
 app.use("/api/services", serviceRoutes)
 app.use("/api/uploads", uploadRoutes)
+app.use("/api/temoignages", temoignageRoutes)
 
 
 // Start Server

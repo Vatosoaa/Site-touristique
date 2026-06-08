@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express"
 import * as jwt from "jsonwebtoken"
-
-const JWT_SECRET = process.env.JWT_SECRET || "tourism_super_secret_jwt_key_2026"
+import * as fs from "fs"
+import * as path from "path"
 
 export interface AuthenticatedRequest extends Request {
   adminId?: string
@@ -15,12 +15,19 @@ export function authMiddleware(req: AuthenticatedRequest, res: Response, next: N
   }
 
   const token = authHeader.split(" ")[1]
+  const JWT_SECRET = process.env.JWT_SECRET || "tourism_super_secret_jwt_key_2026"
 
+  let decoded: any
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { id: string }
-    req.adminId = decoded.id
-    next()
-  } catch (error) {
-    res.status(400).json({ error: "Invalid token." })
+    decoded = jwt.verify(token, JWT_SECRET) as { id: string }
+  } catch (error: any) {
+    const logPath = path.resolve(__dirname, "../../auth_error.log")
+    const logMessage = `[${new Date().toISOString()}] JWT Error: ${error?.message || error}\nToken: ${token}\nSecret: ${JWT_SECRET}\nStack: ${error?.stack}\n\n`
+    fs.appendFileSync(logPath, logMessage)
+    console.error("JWT Verification Error:", error)
+    return res.status(400).json({ error: "Invalid token." })
   }
+
+  req.adminId = decoded.id
+  next()
 }

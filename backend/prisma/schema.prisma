@@ -99,3 +99,13 @@ model Service {
   createdAt   DateTime @default(now())
 }
 
+model Temoignage {
+  id        Int      @id @default(autoincrement())
+  author    String
+  avatar    String?  @default("")
+  rating    Int      @default(5)
+  content   String
+  trip      String?  @default("")
+  createdAt DateTime @default(now())
+}
+

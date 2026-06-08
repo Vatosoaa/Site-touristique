@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Star } from "lucide-react"
 import {
@@ -7,6 +8,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel"
+import { api } from "@/lib/api"
 
 const REVIEWS = [
   {
@@ -57,6 +59,31 @@ const OTHER_TRIPS = [
 ]
 
 export function DetailBottom() {
+  const [reviews, setReviews] = useState<any[]>([])
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const data = await api.getTemoignages()
+        if (data && data.length > 0) {
+          setReviews(data.map(t => ({
+            id: t.id,
+            text: t.content,
+            author: t.author,
+            date: new Date(t.createdAt).toLocaleDateString("fr-FR", { month: "long", year: "numeric" }),
+            trip: t.trip || ""
+          })))
+        } else {
+          setReviews(REVIEWS)
+        }
+      } catch (err) {
+        console.error("Failed to load reviews:", err)
+        setReviews(REVIEWS)
+      }
+    }
+    load()
+  }, [])
+
   return (
     <div className="w-full bg-[#f4f6f5] pt-16 pb-24 border-t border-slate-200">
       <div className="max-w-5xl mx-auto px-6">
@@ -90,7 +117,7 @@ export function DetailBottom() {
               className="w-full relative z-10"
             >
               <CarouselContent>
-                {REVIEWS.map((review) => (
+                {reviews.map((review) => (
                   <CarouselItem key={review.id} className="w-full">
                     <div className="flex flex-col items-center justify-center">
                       <p className="text-slate-700 text-lg md:text-xl leading-relaxed mb-8 max-w-3xl mx-auto min-h-[120px]">
@@ -102,9 +129,11 @@ export function DetailBottom() {
                           - {review.author} -
                         </span>
                         <span className="text-xs text-slate-400">{review.date}</span>
-                        <span className="text-xs text-slate-400 mt-2">
-                          Avis relatif au voyage "{review.trip}"
-                        </span>
+                        {review.trip && (
+                          <span className="text-xs text-slate-400 mt-2">
+                            Avis relatif au voyage "{review.trip}"
+                          </span>
+                        )}
                       </div>
                     </div>
                   </CarouselItem>

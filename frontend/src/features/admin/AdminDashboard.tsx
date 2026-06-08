@@ -40,6 +40,7 @@ import { BlogDialog } from "./components/BlogDialog"
 import { EmployeeDialog } from "./components/EmployeeDialog"
 import { ServiceDialog } from "./components/ServiceDialog"
 import { ServiceDetailsDialog } from "./components/ServiceDetailsDialog"
+import { TemoignageDialog } from "./components/TemoignageDialog"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { DashboardChart } from "./components/DashboardChart"
 import AgendaTab from "./components/AgendaTab"
@@ -70,6 +71,7 @@ export default function AdminDashboard() {
   const [employees, setEmployees] = useState<any[]>([])
   const [roles, setRoles] = useState<any[]>([])
   const [services, setServices] = useState<any[]>([])
+  const [temoignages, setTemoignages] = useState<any[]>([])
   const [username, setUsername] = useState("Admin")
   
   // Loading & Error States
@@ -83,6 +85,7 @@ export default function AdminDashboard() {
   const [isEmployeeDialogOpen, setIsEmployeeDialogOpen] = useState(false)
   const [isServiceDialogOpen, setIsServiceDialogOpen] = useState(false)
   const [isServiceDetailsOpen, setIsServiceDetailsOpen] = useState(false)
+  const [isTemoignageDialogOpen, setIsTemoignageDialogOpen] = useState(false)
   const [selectedItem, setSelectedItem] = useState<any>(null)
   const [selectedServiceDetail, setSelectedServiceDetail] = useState<any>(null)
   const [selectedEmployee, setSelectedEmployee] = useState<any>(null)
@@ -122,19 +125,47 @@ export default function AdminDashboard() {
     fetchData()
   }, [navigate])
 
+  const handleApiCall = async <T,>(
+    apiCall: () => Promise<T>,
+    successCallback?: (data: T) => void,
+    errorTitle = "Erreur"
+  ) => {
+    try {
+      const res = await apiCall()
+      if (successCallback) successCallback(res)
+      return res
+    } catch (err: any) {
+      if (err.message?.includes("Unauthorized") || err.message?.includes("token") || err.message?.includes("denied")) {
+        pushToast("Session expirée", "Veuillez vous reconnecter.", "error")
+        api.logout()
+        navigate("/admin/login")
+      } else {
+        pushToast(errorTitle, err.message || "Une erreur est survenue.", "error")
+      }
+      throw err
+    }
+  }
+
   const fetchData = async () => {
     setLoading(true)
     setError(null)
     try {
-      const [toursData, packagesData, blogData, messagesData, employeesData, rolesData, servicesData] = await Promise.all([
+      // Fetch public endpoints (we can catch them so one failure doesn't block the page)
+      const [toursData, packagesData, blogData, servicesData, temoignagesData] = await Promise.all([
         api.getTours().catch(() => []),
         api.getPackages().catch(() => []),
         api.getBlogPosts().catch(() => []),
-        api.getMessages().catch(() => []),
-        api.getEmployees().catch(() => []),
-        api.getRoles().catch(() => []),
-        api.getServices().catch(() => [])
+        api.getServices().catch(() => []),
+        api.getTemoignages().catch(() => [])
       ])
+
+      // Fetch admin endpoints (do NOT catch so token errors propagate to the catch block)
+      const [messagesData, employeesData, rolesData] = await Promise.all([
+        api.getMessages(),
+        api.getEmployees(),
+        api.getRoles()
+      ])
+
       setTours(toursData)
       setPackages(packagesData)
       setBlogPosts(blogData)
@@ -142,11 +173,12 @@ export default function AdminDashboard() {
       setEmployees(employeesData)
       setRoles(rolesData)
       setServices(servicesData)
+      setTemoignages(temoignagesData)
       if (rolesData.length > 0 && !selectedRoleId) {
         setSelectedRoleId(rolesData[0].id)
       }
     } catch (err: any) {
-      if (err.message?.includes("Unauthorized") || err.message?.includes("token")) {
+      if (err.message?.includes("Unauthorized") || err.message?.includes("token") || err.message?.includes("denied")) {
         api.logout()
         navigate("/admin/login")
       } else {
@@ -157,7 +189,6 @@ export default function AdminDashboard() {
     }
   }
 
-
   const handleLogout = () => {
     api.logout()
     navigate("/admin/login")
@@ -165,92 +196,126 @@ export default function AdminDashboard() {
 
   // --- Tour Operations ---
   const handleSaveTour = async (tourData: any) => {
-    if (selectedItem) {
-      const updated = await api.updateTour(selectedItem.id, tourData)
-      setTours(tours.map(t => t.id === selectedItem.id ? updated : t))
-    } else {
-      const created = await api.createTour(tourData)
-      setTours([...tours, created])
-    }
-    fetchData() // Refresh database stats
+    await handleApiCall(async () => {
+      if (selectedItem) {
+        const updated = await api.updateTour(selectedItem.id, tourData)
+        setTours(tours.map(t => t.id === selectedItem.id ? updated : t))
+      } else {
+        const created = await api.createTour(tourData)
+        setTours([...tours, created])
+      }
+    }, () => {
+      fetchData()
+      pushToast("Succès", "Circuit enregistré avec succès.", "success")
+    }, "Erreur d'enregistrement")
   }
 
   const handleDeleteTour = async (id: number) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer ce circuit ?")) {
-      await api.deleteTour(id)
-      setTours(tours.filter(t => t.id !== id))
+      await handleApiCall(async () => {
+        await api.deleteTour(id)
+        setTours(tours.filter(t => t.id !== id))
+      }, () => {
+        fetchData()
+        pushToast("Succès", "Circuit supprimé.", "success")
+      }, "Erreur de suppression")
     }
   }
 
   // --- Package Operations ---
   const handleSavePackage = async (pkgData: any) => {
-    if (selectedItem) {
-      const updated = await api.updatePackage(selectedItem.id, pkgData)
-      setPackages(packages.map(p => p.id === selectedItem.id ? updated : p))
-    } else {
-      const created = await api.createPackage(pkgData)
-      setPackages([...packages, created])
-    }
-    fetchData()
+    await handleApiCall(async () => {
+      if (selectedItem) {
+        const updated = await api.updatePackage(selectedItem.id, pkgData)
+        setPackages(packages.map(p => p.id === selectedItem.id ? updated : p))
+      } else {
+        const created = await api.createPackage(pkgData)
+        setPackages([...packages, created])
+      }
+    }, () => {
+      fetchData()
+      pushToast("Succès", "Formule enregistrée avec succès.", "success")
+    }, "Erreur d'enregistrement")
   }
 
   const handleDeletePackage = async (id: number) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer cette formule ?")) {
-      await api.deletePackage(id)
-      setPackages(packages.filter(p => p.id !== id))
+      await handleApiCall(async () => {
+        await api.deletePackage(id)
+        setPackages(packages.filter(p => p.id !== id))
+      }, () => {
+        fetchData()
+        pushToast("Succès", "Formule supprimée.", "success")
+      }, "Erreur de suppression")
     }
   }
 
   // --- Blog Operations ---
   const handleSaveBlog = async (blogData: any) => {
-    if (selectedItem) {
-      const updated = await api.updateBlogPost(selectedItem.id, blogData)
-      setBlogPosts(blogPosts.map(b => b.id === selectedItem.id ? updated : b))
-    } else {
-      const created = await api.createBlogPost(blogData)
-      setBlogPosts([created, ...blogPosts])
-    }
-    fetchData()
+    await handleApiCall(async () => {
+      if (selectedItem) {
+        const updated = await api.updateBlogPost(selectedItem.id, blogData)
+        setBlogPosts(blogPosts.map(b => b.id === selectedItem.id ? updated : b))
+      } else {
+        const created = await api.createBlogPost(blogData)
+        setBlogPosts([created, ...blogPosts])
+      }
+    }, () => {
+      fetchData()
+      pushToast("Succès", "Article de blog enregistré.", "success")
+    }, "Erreur d'enregistrement")
   }
 
   const handleDeleteBlog = async (id: number) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer cet article de blog ?")) {
-      await api.deleteBlogPost(id)
-      setBlogPosts(blogPosts.filter(b => b.id !== id))
+      await handleApiCall(async () => {
+        await api.deleteBlogPost(id)
+        setBlogPosts(blogPosts.filter(b => b.id !== id))
+      }, () => {
+        fetchData()
+        pushToast("Succès", "Article supprimé.", "success")
+      }, "Erreur de suppression")
     }
   }
 
   // --- Message Operations ---
   const handleDeleteMessage = async (id: number) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer ce message ?")) {
-      await api.deleteMessage(id)
-      setMessages(messages.filter(m => m.id !== id))
+      await handleApiCall(async () => {
+        await api.deleteMessage(id)
+        setMessages(messages.filter(m => m.id !== id))
+      }, () => {
+        pushToast("Succès", "Message supprimé.", "success")
+      }, "Erreur de suppression")
     }
   }
 
   // --- Service Operations ---
   const handleSaveService = async (serviceData: any) => {
-    if (selectedItem) {
-      const updated = await api.updateService(selectedItem.id, serviceData)
-      setServices(services.map(s => s.id === selectedItem.id ? updated : s))
-      setSelectedItem(null)
-    } else {
-      const created = await api.createService(serviceData)
-      setServices([...services, created])
-    }
-    fetchData()
+    await handleApiCall(async () => {
+      if (selectedItem) {
+        const updated = await api.updateService(selectedItem.id, serviceData)
+        setServices(services.map(s => s.id === selectedItem.id ? updated : s))
+        setSelectedItem(null)
+      } else {
+        const created = await api.createService(serviceData)
+        setServices([...services, created])
+      }
+    }, () => {
+      fetchData()
+      pushToast("Succès", "Service enregistré.", "success")
+    }, "Erreur d'enregistrement")
   }
 
   const handleDeleteService = async (id: number) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer ce service ?")) {
-      try {
+      await handleApiCall(async () => {
         await api.deleteService(id)
         setServices(services.filter(s => s.id !== id))
+      }, () => {
         fetchData()
         pushToast("Service supprimé", "L'élément a été retiré du tableau.", "success")
-      } catch (err: any) {
-        pushToast("Suppression impossible", err.message || "Une erreur est survenue.", "error")
-      }
+      }, "Suppression impossible")
     }
   }
 
@@ -261,19 +326,27 @@ export default function AdminDashboard() {
 
   // --- Employee Operations ---
   const handleSaveEmployee = async (employeeData: any) => {
-    if (selectedEmployee) {
-      await api.updateEmployee(selectedEmployee.id, employeeData)
-      setSelectedEmployee(null)
-    } else {
-      await api.createEmployee(employeeData)
-    }
-    fetchData()
+    await handleApiCall(async () => {
+      if (selectedEmployee) {
+        await api.updateEmployee(selectedEmployee.id, employeeData)
+        setSelectedEmployee(null)
+      } else {
+        await api.createEmployee(employeeData)
+      }
+    }, () => {
+      fetchData()
+      pushToast("Succès", "Employé enregistré.", "success")
+    }, "Erreur d'enregistrement")
   }
 
   const handleDeleteEmployee = async (id: number) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer cet employé ?")) {
-      await api.deleteEmployee(id)
-      fetchData()
+      await handleApiCall(async () => {
+        await api.deleteEmployee(id)
+      }, () => {
+        fetchData()
+        pushToast("Succès", "Employé supprimé.", "success")
+      }, "Erreur de suppression")
     }
   }
 
@@ -289,12 +362,12 @@ export default function AdminDashboard() {
       newPermissions.push(permissionKey)
     }
 
-    try {
+    await handleApiCall(async () => {
       await api.updateRole(roleId, { permissions: newPermissions })
+    }, () => {
       fetchData()
-    } catch (err: any) {
-      alert(err.message || "Erreur lors de la mise à jour des permissions.")
-    }
+      pushToast("Succès", "Permissions mises à jour.", "success")
+    }, "Erreur de mise à jour")
   }
 
   const handleCreateRole = async () => {
@@ -303,23 +376,52 @@ export default function AdminDashboard() {
 
     const description = window.prompt("Description du rôle :") || ""
 
-    try {
+    await handleApiCall(async () => {
       await api.createRole({ name, description, permissions: [] })
+    }, () => {
       fetchData()
-    } catch (err: any) {
-      alert(err.message || "Erreur lors de la création du rôle.")
-    }
+      pushToast("Succès", "Rôle créé.", "success")
+    }, "Erreur de création")
   }
 
   const handleDeleteRole = async (id: number) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer ce rôle ?")) {
-      try {
+      await handleApiCall(async () => {
         await api.deleteRole(id)
         setSelectedRoleId(null)
+      }, () => {
         fetchData()
-      } catch (err: any) {
-        alert(err.message || "Erreur lors de la suppression du rôle.")
+        pushToast("Succès", "Rôle supprimé.", "success")
+      }, "Erreur de suppression")
+    }
+  }
+
+  // --- Testimonial Operations ---
+  const handleSaveTemoignage = async (temoignageData: any) => {
+    await handleApiCall(async () => {
+      if (selectedItem) {
+        const updated = await api.updateTemoignage(selectedItem.id, temoignageData)
+        setTemoignages(temoignages.map(t => t.id === selectedItem.id ? updated : t))
+        setSelectedItem(null)
+      } else {
+        const created = await api.createTemoignage(temoignageData)
+        setTemoignages([...temoignages, created])
       }
+    }, () => {
+      fetchData()
+      pushToast("Succès", "Témoignage enregistré.", "success")
+    }, "Erreur d'enregistrement")
+  }
+
+  const handleDeleteTemoignage = async (id: number) => {
+    if (window.confirm("Êtes-vous sûr de vouloir supprimer ce témoignage ?")) {
+      await handleApiCall(async () => {
+        await api.deleteTemoignage(id)
+        setTemoignages(temoignages.filter(t => t.id !== id))
+      }, () => {
+        fetchData()
+        pushToast("Témoignage supprimé", "L'avis a bien été supprimé.", "success")
+      }, "Impossible de supprimer")
     }
   }
 
@@ -1542,20 +1644,76 @@ export default function AdminDashboard() {
             {/* TEMOIGNAGES TAB */}
             {activeTab === "temoignages" && (
               <div className="space-y-6">
-                <span className="text-sm text-muted-foreground font-semibold">Avis Clients Reçus</span>
+                <div className="flex justify-between items-center bg-card border border-border p-4 rounded-3xl shadow-sm">
+                  <span className="text-sm text-muted-foreground font-semibold">
+                    {temoignages.length} avis clients reçus au total
+                  </span>
+                  <Button
+                    onClick={() => {
+                      setSelectedItem(null)
+                      setIsTemoignageDialogOpen(true)
+                    }}
+                    className="bg-orange-yellow hover:bg-orange-yellow/90 text-slate-950 font-bold px-4 py-5 rounded-xl flex items-center gap-2 cursor-pointer transition-transform active:scale-95"
+                  >
+                    <Plus className="w-5 h-5" />
+                    Ajouter un témoignage
+                  </Button>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {[
-                    { author: "Marc & Julie", rating: "⭐⭐⭐⭐⭐", review: "Un voyage inoubliable ! L'organisation était parfaite de A à Z. Les paysages de Sainte Marie sont incroyables." },
-                    { author: "Stéphane G.", rating: "⭐⭐⭐⭐⭐", review: "Prestations haut de gamme. Le chauffeur-guide était fantastique et d'une gentillesse exceptionnelle." }
-                  ].map((test, idx) => (
-                    <Card key={idx} className="bg-card border border-border p-6 rounded-3xl shadow-md">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="font-bold text-foreground text-sm">{test.author}</span>
-                        <span className="text-xs">{test.rating}</span>
+                  {temoignages.map((test) => (
+                    <Card key={test.id} className="bg-card border border-border p-6 rounded-3xl shadow-md flex flex-col justify-between transition-colors duration-300">
+                      <div>
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={test.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150&auto=format&fit=crop"}
+                              alt={test.author}
+                              className="w-10 h-10 rounded-full object-cover ring-2 ring-border"
+                            />
+                            <div className="flex flex-col">
+                              <span className="font-bold text-slate-900 dark:text-white text-sm leading-tight">{test.author}</span>
+                              {test.trip && (
+                                <span className="text-[10px] text-muted-foreground font-semibold">Voyage: {test.trip}</span>
+                              )}
+                            </div>
+                          </div>
+                          <span className="text-xs font-semibold text-amber-500">
+                            {"⭐".repeat(test.rating)}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground leading-relaxed italic bg-background p-4 rounded-xl border border-border">
+                          "{test.content}"
+                        </p>
                       </div>
-                      <p className="text-xs text-muted-foreground leading-relaxed italic">"{test.review}"</p>
+                      
+                      <div className="mt-6 pt-4 border-t border-border/50 flex justify-end gap-2">
+                        <Button
+                          onClick={() => {
+                            setSelectedItem(test)
+                            setIsTemoignageDialogOpen(true)
+                          }}
+                          variant="outline"
+                          className="h-8 rounded-lg px-3 text-xs flex items-center gap-1 cursor-pointer"
+                        >
+                          <Edit2 className="w-3 h-3" />
+                          Modifier
+                        </Button>
+                        <Button
+                          onClick={() => handleDeleteTemoignage(test.id)}
+                          className="h-8 rounded-lg px-3 text-xs bg-destructive/10 hover:bg-destructive/20 text-destructive dark:text-red-400 flex items-center gap-1 cursor-pointer border border-transparent"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          Supprimer
+                        </Button>
+                      </div>
                     </Card>
                   ))}
+                  {temoignages.length === 0 && (
+                    <div className="col-span-2 text-center py-20 text-muted-foreground font-semibold bg-muted/20 border border-dashed border-border rounded-3xl">
+                      Aucun témoignage disponible pour le moment.
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -1632,6 +1790,16 @@ export default function AdminDashboard() {
           setSelectedServiceDetail(null)
         }}
         service={selectedServiceDetail}
+      />
+
+      <TemoignageDialog
+        isOpen={isTemoignageDialogOpen}
+        onClose={() => {
+          setIsTemoignageDialogOpen(false)
+          setSelectedItem(null)
+        }}
+        onSave={handleSaveTemoignage}
+        temoignage={selectedItem}
       />
 
       <div className="pointer-events-none fixed right-4 top-4 z-[60] flex w-[min(24rem,calc(100vw-2rem))] flex-col gap-3">

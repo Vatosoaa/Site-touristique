@@ -261,6 +261,48 @@ async function main() {
   }
   console.log("Services seeded.")
 
+  // 8. Create Testimonials
+  const testimonialsData = [
+    {
+      author: "Jean-Pierre Durand",
+      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=150&auto=format&fit=crop",
+      rating: 5,
+      content: "Une expérience inoubliable ! Le circuit était parfaitement organisé, alliant découvertes culturelles et moments de détente. L'équipe est professionnelle et passionnée. Nous reviendrons l'année prochaine !",
+      trip: "Sur les traces des ancêtres : Autotour dans les Hautes Terres"
+    },
+    {
+      author: "Marie Lefebvre",
+      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150&auto=format&fit=crop",
+      rating: 5,
+      content: "Explor’île nous a permis de découvrir Madagascar d'une manière totalement différente. Les guides sont de véritables experts qui donnent du sens à chaque visite. Une immersion authentique garantie !",
+      trip: "Séjours balnéaires à l'Est"
+    },
+    {
+      author: "Thomas Bernard",
+      avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=150&auto=format&fit=crop",
+      rating: 5,
+      content: "Nous avons adoré notre séjour balnéaire à l'Est. Le canal de Pangalanes est une pure merveille. Tout était fluide, du transfert à l'aéroport jusqu'aux activités quotidiennes. Hautement recommandé !",
+      trip: "Aventures dans l'Ouest"
+    },
+    {
+      author: "Sophie Morel",
+      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150&auto=format&fit=crop",
+      rating: 5,
+      content: "Un contenu d'une richesse rare. On sent que chaque circuit est basé sur de vraies recherches. C'est bien plus qu'un voyage, c'est une véritable immersion au cœur de l'âme malgache.",
+      trip: "Sur les traces des ancêtres : Autotour dans les Hautes Terres"
+    }
+  ]
+
+  for (const t of testimonialsData) {
+    const existing = await (prisma as any).temoignage.findFirst({
+      where: { author: t.author, content: t.content }
+    })
+    if (!existing) {
+      await (prisma as any).temoignage.create({ data: t })
+    }
+  }
+  console.log("Testimonials seeded.")
+
   console.log("Seeding complete.")
 }
 

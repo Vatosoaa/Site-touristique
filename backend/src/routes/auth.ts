@@ -5,7 +5,6 @@ import prisma from "../db"
 import { authMiddleware, AuthenticatedRequest } from "../middleware/auth"
 
 const router = Router()
-const JWT_SECRET = process.env.JWT_SECRET || "tourism_super_secret_jwt_key_2026"
 
 // Admin Login
 router.post("/login", async (req, res) => {
@@ -29,6 +28,7 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ error: "Invalid credentials" })
     }
 
+    const JWT_SECRET = process.env.JWT_SECRET || "tourism_super_secret_jwt_key_2026"
     const token = jwt.sign({ id: admin.id }, JWT_SECRET, { expiresIn: "7d" })
     return res.json({ token, admin: { id: admin.id, username: admin.username } })
   } catch (error) {

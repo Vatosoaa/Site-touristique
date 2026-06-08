@@ -341,6 +341,38 @@ class ApiClient {
     })
     return this.handleResponse<{ image: string }>(response)
   }
+
+  // --- Testimonials API ---
+  async getTemoignages(): Promise<any[]> {
+    const response = await fetch(`${API_BASE_URL}/temoignages`)
+    return this.handleResponse<any[]>(response)
+  }
+
+  async createTemoignage(temoignage: any): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/temoignages`, {
+      method: "POST",
+      headers: this.getHeaders(),
+      body: JSON.stringify(temoignage),
+    })
+    return this.handleResponse<any>(response)
+  }
+
+  async updateTemoignage(id: number, temoignage: any): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/temoignages/${id}`, {
+      method: "PUT",
+      headers: this.getHeaders(),
+      body: JSON.stringify(temoignage),
+    })
+    return this.handleResponse<any>(response)
+  }
+
+  async deleteTemoignage(id: number): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/temoignages/${id}`, {
+      method: "DELETE",
+      headers: this.getHeaders(),
+    })
+    return this.handleResponse<any>(response)
+  }
 }
 
 export const api = new ApiClient()

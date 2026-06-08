@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Star } from "lucide-react"
 import {
@@ -7,6 +8,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel"
+import { api } from "@/lib/api"
 
 const TESTIMONIALS = [
   {
@@ -36,6 +38,31 @@ const TESTIMONIALS = [
 ]
 
 export function Testimonials() {
+  const [list, setList] = useState<any[]>([])
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const data = await api.getTemoignages()
+        if (data && data.length > 0) {
+          setList(data.map(t => ({
+            id: t.id,
+            name: t.author,
+            avatar: t.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150&auto=format&fit=crop",
+            text: t.content,
+            rating: t.rating || 5
+          })))
+        } else {
+          setList(TESTIMONIALS.map(t => ({ ...t, rating: 5 })))
+        }
+      } catch (err) {
+        console.error("Failed to load testimonials:", err)
+        setList(TESTIMONIALS.map(t => ({ ...t, rating: 5 })))
+      }
+    }
+    load()
+  }, [])
+
   return (
     <section className="py-24 px-4 md:px-12 bg-slate-50 overflow-hidden">
       <div className="max-w-7xl mx-auto">
@@ -47,7 +74,7 @@ export function Testimonials() {
           className="w-full px-4 md:px-12"
         >
           <CarouselContent className="-ml-4 md:-ml-8">
-            {TESTIMONIALS.map((t) => (
+            {list.map((t) => (
               <CarouselItem key={t.id} className="pl-4 md:pl-8 basis-[90%] sm:basis-1/2 md:basis-1/3">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
@@ -64,7 +91,7 @@ export function Testimonials() {
                     <div className="flex flex-col">
                       <span className="font-black text-slate-900 text-sm md:text-base leading-tight">{t.name}</span>
                       <div className="flex gap-0.5 mt-1">
-                        {[...Array(5)].map((_, i) => (
+                        {[...Array(t.rating)].map((_, i) => (
                           <Star key={i} className="w-3 h-3 text-yellow-400 fill-yellow-400" />
                         ))}
                       </div>
@@ -84,12 +111,12 @@ export function Testimonials() {
 
         {/* Pagination Dots */}
         <div className="flex justify-center items-center gap-2 mt-12">
-          {TESTIMONIALS.map((_, i) => (
+          {list.map((_, i) => (
             <div 
               key={i} 
               className={cn(
                 "h-2 rounded-full transition-all duration-300",
-                i === 1 ? "w-6 bg-forest-green" : "w-2 bg-slate-200"
+                i === 0 ? "w-6 bg-forest-green" : "w-2 bg-slate-200"
               )} 
             />
           ))}
